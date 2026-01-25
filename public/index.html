@@ -193,6 +193,33 @@
         observer.observe(root, { childList: true, subtree: true });
       });
     </script>
+    <script>
+      // Patch to reorder plans and fix input types
+      document.addEventListener("DOMContentLoaded", () => {
+        const root = document.getElementById('root');
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+              // 1. Fix input types (number -> text)
+              document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.type = 'text';
+              });
+              
+              // 2. Reorder plans (Starter first)
+              const planContainer = document.querySelector('.plans-container, .pricing-grid');
+              if (planContainer) {
+                const plans = Array.from(planContainer.children);
+                const starterPlan = plans.find(p => p.innerText.toLowerCase().includes('starter'));
+                if (starterPlan && plans[0] !== starterPlan) {
+                  planContainer.prepend(starterPlan);
+                }
+              }
+            }
+          });
+        });
+        observer.observe(root, { childList: true, subtree: true });
+      });
+    </script>
   </head>
   <body>
     <div id="app-loader">
