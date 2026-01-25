@@ -17,6 +17,47 @@
         --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
       }
       
+      /* Initial state: Hide root until auth/app is ready */
+      #root {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+      
+      #root.ready {
+        opacity: 1;
+      }
+
+      /* Global overlay loader */
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        background: #0a0a0a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.4s ease-out, visibility 0.4s;
+      }
+
+      #app-loader.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(147, 51, 234, 0.1);
+        border-top: 3px solid #9333ea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
       * {
         transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s var(--ease-out-expo);
       }
@@ -76,6 +117,31 @@
       }
     </style>
     <script>
+      // Auth/App Readiness synchronization
+      (function() {
+        const checkAppReady = setInterval(() => {
+          const root = document.getElementById('root');
+          // We check if the app has rendered its first meaningful content 
+          // (e.g., more than just an empty div) or if a global flag is set
+          if (root && root.children.length > 0) {
+            clearInterval(checkAppReady);
+            setTimeout(() => {
+              document.getElementById('app-loader').classList.add('hidden');
+              root.classList.add('ready');
+            }, 300); // Small buffer for the final frame
+          }
+        }, 50);
+
+        // Fallback: Show app anyway after 5 seconds to prevent infinite loading
+        setTimeout(() => {
+          clearInterval(checkAppReady);
+          const loader = document.getElementById('app-loader');
+          const root = document.getElementById('root');
+          if (loader) loader.classList.add('hidden');
+          if (root) root.classList.add('ready');
+        }, 5000);
+      })();
+
       // Simple scroll reveal implementation
       function reveal() {
         var reveals = document.querySelectorAll(".reveal");
@@ -116,6 +182,9 @@
     </script>
   </head>
   <body>
+    <div id="app-loader">
+      <div class="spinner"></div>
+    </div>
     <div id="root"></div>
   </body>
 </html>
