@@ -117,29 +117,42 @@
       }
     </style>
     <script>
-      // Auth/App Readiness synchronization
+      // Enhanced Auth/App Readiness synchronization
       (function() {
-        const checkAppReady = setInterval(() => {
-          const root = document.getElementById('root');
-          // We check if the app has rendered its first meaningful content 
-          // (e.g., more than just an empty div) or if a global flag is set
-          if (root && root.children.length > 0) {
-            clearInterval(checkAppReady);
-            setTimeout(() => {
-              document.getElementById('app-loader').classList.add('hidden');
-              root.classList.add('ready');
-            }, 300); // Small buffer for the final frame
-          }
-        }, 50);
+        const root = document.getElementById('root');
+        const loader = document.getElementById('app-loader');
+        
+        // Block interaction until fully ready
+        document.body.style.overflow = 'hidden';
 
-        // Fallback: Show app anyway after 5 seconds to prevent infinite loading
+        const checkAppReady = setInterval(() => {
+          // In a pre-built React app, we look for signs of completion
+          // If the app has its own loading states, we wait for those to clear too
+          const hasContent = root && root.children.length > 0;
+          const isFlickering = document.body.innerText.includes('Logging in') || 
+                             document.body.innerText.includes('Loading');
+
+          if (hasContent && !isFlickering) {
+            clearInterval(checkAppReady);
+            
+            // Give Firebase/Auth a tiny bit more time to settle the session state
+            // to ensure the navbar/menu has correctly flipped before showing the UI
+            setTimeout(() => {
+              loader.classList.add('hidden');
+              root.classList.add('ready');
+              document.body.style.overflow = '';
+              console.log("Auth session settled, revealing UI.");
+            }, 600); 
+          }
+        }, 100);
+
+        // Fail-safe for critical errors
         setTimeout(() => {
           clearInterval(checkAppReady);
-          const loader = document.getElementById('app-loader');
-          const root = document.getElementById('root');
           if (loader) loader.classList.add('hidden');
           if (root) root.classList.add('ready');
-        }, 5000);
+          document.body.style.overflow = '';
+        }, 8000);
       })();
 
       // Simple scroll reveal implementation
