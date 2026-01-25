@@ -2,9 +2,13 @@
 
 ## Overview
 
-This appears to be a frontend web application built with modern JavaScript/TypeScript tooling. The project is a single-page application (SPA) that has been built and bundled, with the compiled assets served from the `assets/` directory. The application includes ad monetization integrations (Google AdSense and Monetag).
+BlackPhnix Hub - A hosting services platform built as a Flask + React SPA. The frontend is a pre-built React application served from the `public/` directory, with a Flask backend providing API endpoints for hosting plans, orders, and support tickets.
 
-Based on the build artifacts, this is likely a React or similar framework application using Vite as the build tool (evidenced by the asset naming conventions and structure).
+**Recent Changes (Jan 2026):**
+- Fixed SPA routing issues - all routes now work on refresh
+- Updated service worker for network-first caching strategy
+- Removed conflicting Flask static file handler
+- Added proper cache-control headers for HTML
 
 ## User Preferences
 
