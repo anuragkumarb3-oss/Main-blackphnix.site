@@ -15,7 +15,7 @@ def delete_suspended_subdomains():
         WHERE status = 'suspended' 
         AND suspended_at < %s
         """
-        threshold_date = datetime.now() - timedelta(days=30)
+        threshold_date = datetime.now() - timedelta(days=2)
         
         cur.execute(delete_query, (threshold_date,))
         deleted_count = cur.rowcount
