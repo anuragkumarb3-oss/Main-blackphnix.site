@@ -220,6 +220,49 @@
         observer.observe(root, { childList: true, subtree: true });
       });
     </script>
+    <script>
+      // Redirect /pricing-vps to /pricing
+      (function() {
+        // Check on page load
+        if (window.location.pathname === '/pricing-vps') {
+          window.location.replace('/pricing');
+        }
+        
+        // Intercept navigation changes (for SPA routing)
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function() {
+          originalPushState.apply(this, arguments);
+          if (window.location.pathname === '/pricing-vps') {
+            window.location.replace('/pricing');
+          }
+        };
+        
+        history.replaceState = function() {
+          originalReplaceState.apply(this, arguments);
+          if (window.location.pathname === '/pricing-vps') {
+            window.location.replace('/pricing');
+          }
+        };
+        
+        // Listen for popstate (back/forward navigation)
+        window.addEventListener('popstate', function() {
+          if (window.location.pathname === '/pricing-vps') {
+            window.location.replace('/pricing');
+          }
+        });
+        
+        // Intercept link clicks
+        document.addEventListener('click', function(e) {
+          const link = e.target.closest('a');
+          if (link && link.getAttribute('href') === '/pricing-vps') {
+            e.preventDefault();
+            window.location.href = '/pricing';
+          }
+        }, true);
+      })();
+    </script>
   </head>
   <body>
     <div id="app-loader">
