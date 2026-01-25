@@ -515,11 +515,65 @@
       });
     </script>
     <script>
-      // Force redirect from /pricing-vps to /pricing to ensure consistency
+      // Global redirection and highlighting control
       (function() {
-        if (window.location.pathname.includes('/pricing-vps')) {
+        const path = window.location.pathname;
+        
+        // 1. Force redirect from /pricing-vps to /pricing
+        if (path === '/pricing-vps') {
           window.location.replace('/pricing');
+          return;
         }
+
+        // 2. Persistent highlighting for Starter Plan
+        const applyHighlights = () => {
+          const planCards = document.querySelectorAll('.plans-container > div, .pricing-grid > div');
+          planCards.forEach(card => {
+            const isStarter = card.innerText.toLowerCase().includes('starter');
+            if (isStarter && !card.dataset.highlighted) {
+              card.dataset.highlighted = "true";
+              card.style.border = '2px solid #9333ea';
+              card.style.position = 'relative';
+              card.style.transform = 'scale(1.02)';
+              
+              const badge = document.createElement('div');
+              badge.innerText = 'Best for beginners';
+              badge.style.cssText = `
+                position: absolute;
+                top: -12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #9333ea;
+                color: white;
+                padding: 2px 12px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: bold;
+                white-space: nowrap;
+                z-index: 10;
+              `;
+              card.appendChild(badge);
+            }
+          });
+        };
+
+        // Watch for dynamic content
+        const observer = new MutationObserver((mutations) => {
+          applyHighlights();
+          
+          // Re-check redirect for SPA transitions
+          if (window.location.pathname === '/pricing-vps') {
+            window.location.replace('/pricing');
+          }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+          applyHighlights();
+          observer.observe(document.getElementById('root') || document.body, { 
+            childList: true, 
+            subtree: true 
+          });
+        });
       })();
     </script>
   </head>
