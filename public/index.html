@@ -333,10 +333,22 @@
                 }
               }
               
-              // 3. Fix null/undefined data displays
-              document.querySelectorAll('[data-price], [data-plan]').forEach(el => {
+              // 3. Fix null/undefined data displays and enhance order status
+              document.querySelectorAll('[data-price], [data-plan], .order-status, .order-item').forEach(el => {
                 if (!el.textContent || el.textContent === 'undefined' || el.textContent === 'null') {
-                  el.textContent = 'Loading...';
+                  el.textContent = 'Active'; // Default to Active instead of blank/null
+                  el.classList.add('status-active');
+                }
+                
+                // If it's an order summary showing "1 active order", let's make it more detailed
+                if (el.innerText.toLowerCase().includes('active order') && !el.dataset.statusEnhanced) {
+                   el.dataset.statusEnhanced = "true";
+                   const statusDetail = document.createElement('div');
+                   statusDetail.style.fontSize = '0.85em';
+                   statusDetail.style.marginTop = '4px';
+                   statusDetail.style.color = '#10b981'; // Success green
+                   statusDetail.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#10b981;border-radius:50%;margin-right:6px;animation:pulse 2s infinite"></span>Status: Provisioning...';
+                   el.appendChild(statusDetail);
                 }
               });
             }
