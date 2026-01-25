@@ -355,47 +355,40 @@
         observer.observe(root, { childList: true, subtree: true });
       });
     </script>
-    <script>
       // Redirect /pricing-vps to /pricing
       (function() {
-        // Check on page load
-        if (window.location.pathname === '/pricing-vps') {
+        // Force redirect immediately if on the wrong path
+        if (window.location.pathname.includes('/pricing-vps')) {
           window.location.replace('/pricing');
         }
         
-        // Intercept navigation changes (for SPA routing)
-        const originalPushState = history.pushState;
-        const originalReplaceState = history.replaceState;
-        
-        history.pushState = function() {
-          originalPushState.apply(this, arguments);
-          if (window.location.pathname === '/pricing-vps') {
-            window.location.replace('/pricing');
-          }
-        };
-        
-        history.replaceState = function() {
-          originalReplaceState.apply(this, arguments);
-          if (window.location.pathname === '/pricing-vps') {
-            window.location.replace('/pricing');
-          }
-        };
-        
-        // Listen for popstate (back/forward navigation)
-        window.addEventListener('popstate', function() {
-          if (window.location.pathname === '/pricing-vps') {
-            window.location.replace('/pricing');
-          }
-        });
-        
-        // Intercept link clicks
+        // Global interception for all links and dynamic changes
         document.addEventListener('click', function(e) {
           const link = e.target.closest('a');
-          if (link && link.getAttribute('href') === '/pricing-vps') {
-            e.preventDefault();
-            window.location.href = '/pricing';
+          if (link) {
+            const href = link.getAttribute('href');
+            if (href && href.includes('/pricing-vps')) {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = href.replace('/pricing-vps', '/pricing');
+            }
           }
         }, true);
+
+        // Intercept SPA routing if applicable
+        const handlePathChange = () => {
+          if (window.location.pathname.includes('/pricing-vps')) {
+            window.location.replace(window.location.pathname.replace('/pricing-vps', '/pricing'));
+          }
+        };
+
+        const originalPushState = history.pushState;
+        history.pushState = function() {
+          originalPushState.apply(this, arguments);
+          handlePathChange();
+        };
+        
+        window.addEventListener('popstate', handlePathChange);
       })();
     </script>
   </head>
