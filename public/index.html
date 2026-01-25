@@ -218,32 +218,30 @@
 
         const checkAppReady = setInterval(() => {
           // In a pre-built React app, we look for signs of completion
-          // If the app has its own loading states, we wait for those to clear too
           const hasContent = root && root.children.length > 0;
-          const isFlickering = document.body.innerText.includes('Logging in') || 
-                             document.body.innerText.includes('Loading');
+          // Only check for auth-specific loading states, not general "Loading"
+          const isAuthLoading = document.body.innerText.includes('Logging in');
 
-          if (hasContent && !isFlickering) {
+          if (hasContent && !isAuthLoading) {
             clearInterval(checkAppReady);
             
             // Give Firebase/Auth a tiny bit more time to settle the session state
-            // to ensure the navbar/menu has correctly flipped before showing the UI
             setTimeout(() => {
               loader.classList.add('hidden');
               root.classList.add('ready');
               document.body.style.overflow = '';
               console.log("Auth session settled, revealing UI.");
-            }, 400); // Reduced from 600ms for faster load
+            }, 300);
           }
         }, 100);
 
-        // Fail-safe - reduced from 8s to 5s
+        // Fail-safe - reduced to 3s for faster loading
         setTimeout(() => {
           clearInterval(checkAppReady);
           if (loader) loader.classList.add('hidden');
           if (root) root.classList.add('ready');
           if (document.body) document.body.style.overflow = '';
-        }, 5000);
+        }, 3000);
       });
 
       // Simple scroll reveal implementation
@@ -519,30 +517,33 @@
       (function() {
         const path = window.location.pathname;
         
-        // Block access to pricing pages - redirect to home
-        if (path === '/pricing' || path === '/pricing/' || path === '/pricing-vps' || path === '/pricing-vps/') {
-          window.location.replace('/');
+        // Redirect /pricing to /pricing-shared (the default pricing page)
+        if (path === '/pricing' || path === '/pricing/') {
+          window.location.replace('/pricing-shared');
           return;
         }
 
-        // Hide any pricing-related elements
-        const hidePricingElements = () => {
-          // Hide "View Pricing" buttons and links
+        // Redirect "View Pricing" button clicks to /pricing-shared
+        const redirectPricingLinks = () => {
           document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
             const text = el.textContent.toLowerCase();
-            if (text.includes('pricing') || (el.href && el.href.includes('/pricing'))) {
-              el.style.display = 'none';
+            if (text.includes('pricing') || text.includes('view pricing')) {
+              if (el.tagName === 'A') {
+                el.href = '/pricing-shared';
+              } else if (el.tagName === 'BUTTON' && !el.dataset.pricingRedirect) {
+                el.dataset.pricingRedirect = 'true';
+                el.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  window.location.href = '/pricing-shared';
+                });
+              }
             }
-          });
-          // Hide nav items pointing to pricing
-          document.querySelectorAll('[href="/pricing"], [href="/pricing-vps"]').forEach(el => {
-            el.style.display = 'none';
           });
         };
         
         // Apply immediately and on DOM changes
-        document.addEventListener('DOMContentLoaded', hidePricingElements);
-        const pricingObserver = new MutationObserver(hidePricingElements);
+        document.addEventListener('DOMContentLoaded', redirectPricingLinks);
+        const pricingObserver = new MutationObserver(redirectPricingLinks);
         document.addEventListener('DOMContentLoaded', () => {
           pricingObserver.observe(document.body, { childList: true, subtree: true });
         });
@@ -579,19 +580,18 @@
           });
         };
 
-        // Watch for dynamic content
-        const observer = new MutationObserver((mutations) => {
-          applyHighlights();
-          
-          // Re-check redirect for SPA transitions
-          if (window.location.pathname === '/pricing-vps' || window.location.pathname === '/pricing-vps/') {
-            window.location.replace('/pricing');
+        // Watch for dynamic content and apply highlights on both pricing pages
+        const highlightObserver = new MutationObserver((mutations) => {
+          const path = window.location.pathname;
+          // Apply highlights on pricing-vps and pricing-shared pages
+          if (path.includes('/pricing-vps') || path.includes('/pricing-shared')) {
+            applyHighlights();
           }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
           applyHighlights();
-          observer.observe(document.getElementById('root') || document.body, { 
+          highlightObserver.observe(document.getElementById('root') || document.body, { 
             childList: true, 
             subtree: true 
           });
