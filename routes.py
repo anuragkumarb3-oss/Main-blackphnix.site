@@ -6,15 +6,28 @@ from models import HostingPlan, Order, Ticket
 
 @app.route('/')
 def serve_index():
-    return send_from_directory('public', 'index.html')
+    response = send_from_directory('public', 'index.html')
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/<path:path>')
 def serve_spa(path):
-    try:
+    import os
+    from flask import Response
+    
+    file_path = os.path.join('public', path)
+    
+    if os.path.isfile(file_path):
         return send_from_directory('public', path)
-    except:
-        return send_from_directory('public', 'index.html')
+    
+    response = send_from_directory('public', 'index.html')
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/api/hosting-plans', methods=['GET'])
