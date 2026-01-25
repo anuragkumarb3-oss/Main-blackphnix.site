@@ -178,12 +178,12 @@
       });
       
       // Enhanced Auth/App Readiness synchronization
-      (function() {
+      document.addEventListener('DOMContentLoaded', function() {
         const root = document.getElementById('root');
         const loader = document.getElementById('app-loader');
         
         // Block interaction until fully ready
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
 
         const checkAppReady = setInterval(() => {
           // In a pre-built React app, we look for signs of completion
@@ -211,9 +211,9 @@
           clearInterval(checkAppReady);
           if (loader) loader.classList.add('hidden');
           if (root) root.classList.add('ready');
-          document.body.style.overflow = '';
+          if (document.body) document.body.style.overflow = '';
         }, 5000);
-      })();
+      });
 
       // Simple scroll reveal implementation
       function reveal() {
