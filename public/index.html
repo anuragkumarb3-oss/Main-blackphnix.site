@@ -392,12 +392,55 @@
         };
       })();
 
-      // Enforcement: Unlogged users must login before choosing a plan
+      // Enforcement: /analytics only for admins, Unlogged users must login before choosing a plan
       document.addEventListener("DOMContentLoaded", () => {
         const root = document.getElementById('root');
+        
+        // Admin Access Control
+        const checkAdminAccess = () => {
+          const path = window.location.pathname;
+          if (path.includes('/analytics')) {
+            const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
+            let isAdmin = false;
+            try {
+              const user = JSON.parse(userStr);
+              isAdmin = user && (user.role === 'admin' || user.isAdmin === true || user.email?.includes('admin'));
+            } catch (e) {
+              // Fallback check if not JSON
+              isAdmin = userStr === 'admin';
+            }
+
+            if (!isAdmin) {
+              console.warn('Unauthorized access to /analytics');
+              window.location.replace('/');
+            }
+          }
+        };
+
+        // Check on load
+        checkAdminAccess();
+
         const observer = new MutationObserver((mutations) => {
+          // Check path on navigation
+          checkAdminAccess();
+
           mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
+              // Hide analytics links from normal users
+              const analyticsLinks = document.querySelectorAll('a[href*="/analytics"]');
+              analyticsLinks.forEach(link => {
+                const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
+                let isAdmin = false;
+                try {
+                  const user = JSON.parse(userStr);
+                  isAdmin = user && (user.role === 'admin' || user.isAdmin === true || user.email?.includes('admin'));
+                } catch (e) { isAdmin = userStr === 'admin'; }
+                
+                if (!isAdmin) {
+                  link.style.display = 'none';
+                }
+              });
+
               // Target buttons that look like plan selection/checkout
               const planButtons = document.querySelectorAll('button, a[href*="checkout"], a[href*="billing"]');
               planButtons.forEach(btn => {
