@@ -11,6 +11,109 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2511974370329391" crossorigin="anonymous"></script>
     <script type="module" crossorigin src="./assets/index-B403tFjw.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-Cte1lk7-.css">
+    <style>
+      :root {
+        --animation-speed: 0.5s;
+        --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+      }
+      
+      * {
+        transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s var(--ease-out-expo);
+      }
+
+      body {
+        animation: fadeIn var(--animation-speed) var(--ease-out-expo);
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Hover animations for interactive elements */
+      button, a {
+        transition: all 0.2s var(--ease-out-expo) !important;
+      }
+
+      button:hover, a:hover {
+        transform: translateY(-2px) scale(1.02);
+        filter: brightness(1.1);
+      }
+
+      button:active, a:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      /* Glassmorphism utility for potential UI components */
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* Smooth loading indicator */
+      .loading-pulse {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+      }
+
+      /* Entrance animations for cards/sections */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.8s var(--ease-out-expo);
+      }
+
+      .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+    <script>
+      // Simple scroll reveal implementation
+      function reveal() {
+        var reveals = document.querySelectorAll(".reveal");
+        for (var i = 0; i < reveals.length; i++) {
+          var windowHeight = window.innerHeight;
+          var elementTop = reveals[i].getBoundingClientRect().top;
+          var elementVisible = 150;
+          if (elementTop < windowHeight - elementVisible) {
+            reveals[i].classList.add("active");
+          }
+        }
+      }
+      window.addEventListener("scroll", reveal);
+      
+      // Initial check
+      document.addEventListener("DOMContentLoaded", () => {
+        reveal();
+        
+        // Add reveal class to main sections dynamically if possible
+        const root = document.getElementById('root');
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // Element node
+                  // Apply entrance animation to containers
+                  if (node.tagName === 'SECTION' || node.classList.contains('container')) {
+                    node.classList.add('reveal');
+                    setTimeout(() => node.classList.add('active'), 50);
+                  }
+                }
+              });
+            }
+          });
+        });
+        observer.observe(root, { childList: true, subtree: true });
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
