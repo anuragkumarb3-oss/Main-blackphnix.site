@@ -117,6 +117,66 @@
       }
     </style>
     <script>
+      // Service Worker Management - Clear old caches and register clean SW
+      (function() {
+        if ('serviceWorker' in navigator) {
+          // Unregister ALL old service workers first
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (let registration of registrations) {
+              // Unregister if it's the problematic third-party SW
+              if (registration.active && registration.active.scriptURL.includes('sw_')) {
+                registration.unregister().then(() => {
+                  console.log('Unregistered problematic service worker');
+                });
+              }
+            }
+          });
+          
+          // Clear all caches
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (let name of names) {
+                caches.delete(name);
+                console.log('Deleted cache:', name);
+              }
+            });
+          }
+          
+          // Register clean service worker
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function(registration) {
+              console.log('Clean SW registered:', registration.scope);
+              // Force update
+              registration.update();
+            })
+            .catch(function(error) {
+              console.log('SW registration failed:', error);
+            });
+        }
+      })();
+      
+      // Global Error Handler - Prevent blank screens on JS errors
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error('Global error:', msg, url, lineNo, columnNo, error);
+        // Don't show blank screen, try to recover
+        const root = document.getElementById('root');
+        const loader = document.getElementById('app-loader');
+        if (loader) loader.classList.add('hidden');
+        if (root) root.classList.add('ready');
+        document.body.style.overflow = '';
+        return false;
+      };
+      
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        // Prevent blank screens
+        const root = document.getElementById('root');
+        const loader = document.getElementById('app-loader');
+        if (loader) loader.classList.add('hidden');
+        if (root) root.classList.add('ready');
+        document.body.style.overflow = '';
+      });
+      
       // Enhanced Auth/App Readiness synchronization
       (function() {
         const root = document.getElementById('root');
@@ -142,17 +202,17 @@
               root.classList.add('ready');
               document.body.style.overflow = '';
               console.log("Auth session settled, revealing UI.");
-            }, 600); 
+            }, 400); // Reduced from 600ms for faster load
           }
         }, 100);
 
-        // Fail-safe for critical errors
+        // Fail-safe - reduced from 8s to 5s
         setTimeout(() => {
           clearInterval(checkAppReady);
           if (loader) loader.classList.add('hidden');
           if (root) root.classList.add('ready');
           document.body.style.overflow = '';
-        }, 8000);
+        }, 5000);
       })();
 
       // Simple scroll reveal implementation
@@ -214,11 +274,53 @@
                   planContainer.prepend(starterPlan);
                 }
               }
+              
+              // 3. Fix null/undefined data displays
+              document.querySelectorAll('[data-price], [data-plan]').forEach(el => {
+                if (!el.textContent || el.textContent === 'undefined' || el.textContent === 'null') {
+                  el.textContent = 'Loading...';
+                }
+              });
             }
           });
         });
         observer.observe(root, { childList: true, subtree: true });
       });
+      
+      // Pricing/Checkout null safety - prevent crashes from missing data
+      (function() {
+        const safeAccess = (obj, path, defaultVal = null) => {
+          return path.split('.').reduce((acc, part) => acc && acc[part], obj) || defaultVal;
+        };
+        
+        // Patch localStorage to handle corrupted data
+        const originalGetItem = localStorage.getItem.bind(localStorage);
+        localStorage.getItem = function(key) {
+          try {
+            const value = originalGetItem(key);
+            if (value) {
+              // Try to parse JSON to validate
+              if (value.startsWith('{') || value.startsWith('[')) {
+                JSON.parse(value);
+              }
+            }
+            return value;
+          } catch (e) {
+            console.warn('Corrupted localStorage data for key:', key);
+            localStorage.removeItem(key);
+            return null;
+          }
+        };
+        
+        // Global safe JSON parse
+        window.safeJSONParse = function(str, defaultVal = null) {
+          try {
+            return str ? JSON.parse(str) : defaultVal;
+          } catch (e) {
+            return defaultVal;
+          }
+        };
+      })();
     </script>
     <script>
       // Redirect /pricing-vps to /pricing
