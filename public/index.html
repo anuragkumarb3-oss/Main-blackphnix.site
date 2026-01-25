@@ -403,7 +403,7 @@
         observer.observe(root, { childList: true, subtree: true });
       });
       
-      // Pricing/Checkout null safety - prevent crashes from missing data
+      // Checkout null safety - prevent crashes from missing data
       (function() {
         const safeAccess = (obj, path, defaultVal = null) => {
           return path.split('.').reduce((acc, part) => acc && acc[part], obj) || defaultVal;
@@ -519,13 +519,35 @@
       (function() {
         const path = window.location.pathname;
         
-        // 1. Force redirect from /pricing-vps to /pricing
-        if (path === '/pricing-vps' || path === '/pricing-vps/') {
-          window.location.replace('/pricing');
+        // Block access to pricing pages - redirect to home
+        if (path === '/pricing' || path === '/pricing/' || path === '/pricing-vps' || path === '/pricing-vps/') {
+          window.location.replace('/');
           return;
         }
 
-        // 2. Persistent highlighting for Starter Plan
+        // Hide any pricing-related elements
+        const hidePricingElements = () => {
+          // Hide "View Pricing" buttons and links
+          document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
+            const text = el.textContent.toLowerCase();
+            if (text.includes('pricing') || (el.href && el.href.includes('/pricing'))) {
+              el.style.display = 'none';
+            }
+          });
+          // Hide nav items pointing to pricing
+          document.querySelectorAll('[href="/pricing"], [href="/pricing-vps"]').forEach(el => {
+            el.style.display = 'none';
+          });
+        };
+        
+        // Apply immediately and on DOM changes
+        document.addEventListener('DOMContentLoaded', hidePricingElements);
+        const pricingObserver = new MutationObserver(hidePricingElements);
+        document.addEventListener('DOMContentLoaded', () => {
+          pricingObserver.observe(document.body, { childList: true, subtree: true });
+        });
+
+        // Persistent highlighting for Starter Plan
         const applyHighlights = () => {
           const planCards = document.querySelectorAll('.plans-container > div, .pricing-grid > div');
           planCards.forEach(card => {
