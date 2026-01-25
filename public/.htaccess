@@ -1,0 +1,36 @@
+# LiteSpeed / Apache SPA Routing Configuration
+# This ensures all routes fallback to index.html for client-side routing
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Don't rewrite files or directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Rewrite everything else to index.html to allow html5 state links
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Disable caching for HTML files (always get fresh version)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+  
+  # Cache static assets (JS, CSS) for 1 year with immutable
+  <FilesMatch "\.(js|css|woff2|woff|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Enable compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json
+</IfModule>
