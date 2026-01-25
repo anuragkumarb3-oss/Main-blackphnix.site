@@ -469,40 +469,11 @@
       });
     </script>
     <script>
-      // Redirect /pricing-vps to /pricing
+      // Clean script to avoid showing raw code
       (function() {
-        // Force redirect immediately if on the wrong path
         if (window.location.pathname.includes('/pricing-vps')) {
           window.location.replace('/pricing');
         }
-        
-        // Global interception for all links and dynamic changes
-        document.addEventListener('click', function(e) {
-          const link = e.target.closest('a');
-          if (link) {
-            const href = link.getAttribute('href');
-            if (href && href.includes('/pricing-vps')) {
-              e.preventDefault();
-              e.stopPropagation();
-              window.location.href = href.replace('/pricing-vps', '/pricing');
-            }
-          }
-        }, true);
-
-        // Intercept SPA routing if applicable
-        const handlePathChange = () => {
-          if (window.location.pathname.includes('/pricing-vps')) {
-            window.location.replace(window.location.pathname.replace('/pricing-vps', '/pricing'));
-          }
-        };
-
-        const originalPushState = history.pushState;
-        history.pushState = function() {
-          originalPushState.apply(this, arguments);
-          handlePathChange();
-        };
-        
-        window.addEventListener('popstate', handlePathChange);
       })();
     </script>
   </head>
