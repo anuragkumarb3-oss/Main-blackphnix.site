@@ -265,13 +265,40 @@
                 input.type = 'text';
               });
               
-              // 2. Reorder plans (Starter first)
+              // 2. Reorder plans (Starter first) and highlight
               const planContainer = document.querySelector('.plans-container, .pricing-grid');
               if (planContainer) {
                 const plans = Array.from(planContainer.children);
                 const starterPlan = plans.find(p => p.innerText.toLowerCase().includes('starter'));
-                if (starterPlan && plans[0] !== starterPlan) {
-                  planContainer.prepend(starterPlan);
+                if (starterPlan) {
+                  // Reorder if not first
+                  if (plans[0] !== starterPlan) {
+                    planContainer.prepend(starterPlan);
+                  }
+                  
+                  // Add highlight "Best for beginners"
+                  if (!starterPlan.dataset.highlightAdded) {
+                    starterPlan.dataset.highlightAdded = "true";
+                    starterPlan.style.position = 'relative';
+                    starterPlan.style.border = '2px solid #9333ea';
+                    
+                    const badge = document.createElement('div');
+                    badge.innerText = 'Best for beginners';
+                    badge.style.position = 'absolute';
+                    badge.style.top = '-12px';
+                    badge.style.left = '50%';
+                    badge.style.transform = 'translateX(-50%)';
+                    badge.style.backgroundColor = '#9333ea';
+                    badge.style.color = 'white';
+                    badge.style.padding = '2px 12px';
+                    badge.style.borderRadius = '12px';
+                    badge.style.fontSize = '12px';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.whiteSpace = 'nowrap';
+                    badge.style.zIndex = '10';
+                    
+                    starterPlan.appendChild(badge);
+                  }
                 }
               }
               
