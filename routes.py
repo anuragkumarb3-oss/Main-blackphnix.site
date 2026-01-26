@@ -32,8 +32,20 @@ def serve_spa(path):
 
 @app.route('/api/hosting-plans', methods=['GET'])
 def get_hosting_plans():
+    # Force shared type if not specified for this specific request
     plan_type = request.args.get('type', 'shared')
     plans = HostingPlan.query.filter_by(plan_type=plan_type, is_active=True).order_by(HostingPlan.display_order).all()
+    
+    # Log to verify
+    print(f"API Request: {plan_type} -> {len(plans)} plans")
+    
+    # Return as list of dicts
+    return jsonify([plan.to_dict() for plan in plans])
+
+
+@app.route('/api/hosting-plans/debug', methods=['GET'])
+def debug_hosting_plans():
+    plans = HostingPlan.query.all()
     return jsonify([plan.to_dict() for plan in plans])
 
 
