@@ -55,7 +55,10 @@ def get_hosting_plans():
     data = [plan.to_dict() for plan in plans]
     print(f"DEBUG: Returning {len(data)} plans")
     
-    # Some frontends expect a wrapper object
+    # Alternative format: some frontends expect { "plans": [...] }
+    if request.args.get('format') == 'wrapped':
+        return jsonify({"plans": data, "count": len(data), "type": plan_type})
+        
     return jsonify(data)
 
 
