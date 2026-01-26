@@ -32,15 +32,37 @@ def serve_spa(path):
 
 @app.route('/api/hosting-plans', methods=['GET'])
 def get_hosting_plans():
-    # Force shared type if not specified for this specific request
-    plan_type = request.args.get('type', 'shared')
+    # Capture parameter and convert to lowercase for case-insensitive matching
+    raw_type = (request.args.get('type') or 
+                request.args.get('planType') or 
+                request.args.get('plan_type') or 
+                request.args.get('category') or 
+                'shared')
+    
+    plan_type = raw_type.lower()
+    
+    # Debug logging
+    print(f"DEBUG: API Request for type: {plan_type} (raw: {raw_type})")
+    
+    # Query active plans
     plans = HostingPlan.query.filter_by(plan_type=plan_type, is_active=True).order_by(HostingPlan.display_order).all()
     
-    # Log to verify
-    print(f"API Request: {plan_type} -> {len(plans)} plans")
+    # Robust fallback: if nothing found, return 'shared' plans
+    if not plans:
+        print(f"DEBUG: No plans found for '{plan_type}', falling back to 'shared'")
+        plans = HostingPlan.query.filter_by(plan_type='shared', is_active=True).order_by(HostingPlan.display_order).all()
+
+    data = [plan.to_dict() for plan in plans]
+    print(f"DEBUG: Returning {len(data)} plans")
     
-    # Return as list of dicts
-    return jsonify([plan.to_dict() for plan in plans])
+    # Some frontends expect a wrapper object
+    return jsonify(data)
+
+
+@app.route('/api/hosting-plans/list', methods=['GET'])
+def get_hosting_plans_list():
+    # Alternative endpoint some templates use
+    return get_hosting_plans()
 
 
 @app.route('/api/hosting-plans/debug', methods=['GET'])
