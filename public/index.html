@@ -21,26 +21,51 @@
       body::before, body::after {
         content: '';
         position: fixed;
-        width: 50vw;
-        height: 50vw;
+        width: 60vw;
+        height: 60vw;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(147, 51, 234, 0.15) 0%, transparent 70%);
         z-index: -1;
         pointer-events: none;
-        filter: blur(80px);
-        animation: drift 20s infinite alternate ease-in-out;
+        filter: blur(100px);
+        animation: drift 25s infinite alternate ease-in-out;
       }
 
       body::before {
-        top: -10%;
-        left: -10%;
+        top: -15%;
+        left: -15%;
       }
 
       body::after {
-        bottom: -10%;
-        right: -10%;
+        bottom: -15%;
+        right: -15%;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+        animation-delay: -12s;
+      }
+
+      /* Additional purple glow points */
+      .purple-glow-top-right {
+        position: fixed;
+        top: 20%;
+        right: 10%;
+        width: 30vw;
+        height: 30vw;
+        background: radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, transparent 70%);
+        filter: blur(60px);
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .purple-glow-bottom-left {
+        position: fixed;
+        bottom: 20%;
+        left: 10%;
+        width: 30vw;
+        height: 30vw;
         background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
-        animation-delay: -10s;
+        filter: blur(60px);
+        z-index: -1;
+        pointer-events: none;
       }
 
       @keyframes drift {
@@ -523,6 +548,15 @@
           return;
         }
 
+        // Catch all /pricing links and change them to /pricing-shared
+        document.addEventListener('click', (e) => {
+          const link = e.target.closest('a');
+          if (link && (link.getAttribute('href') === '/pricing' || link.getAttribute('href') === '/pricing/')) {
+            e.preventDefault();
+            window.location.href = '/pricing-shared';
+          }
+        }, true);
+
         // Redirect "View Pricing" button clicks to /pricing-shared
         const redirectPricingLinks = () => {
           document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
@@ -548,19 +582,37 @@
           pricingObserver.observe(document.body, { childList: true, subtree: true });
         });
 
-        // Persistent highlighting for Starter Plan
+        // Persistent highlighting for Starter/Recommended Plans
         const applyHighlights = () => {
+          const path = window.location.pathname;
           const planCards = document.querySelectorAll('.plans-container > div, .pricing-grid > div');
-          planCards.forEach(card => {
-            const isStarter = card.innerText.toLowerCase().includes('starter');
-            if (isStarter && !card.dataset.highlighted) {
+          
+          planCards.forEach((card, index) => {
+            let shouldHighlight = false;
+            let badgeText = '';
+
+            if (path.includes('/pricing-shared')) {
+              if (card.innerText.toLowerCase().includes('starter')) {
+                shouldHighlight = true;
+                badgeText = 'Best for beginners';
+              }
+            } else if (path.includes('/pricing-vps')) {
+              // Highlight the Business or Professional plan for VPS
+              if (card.innerText.toLowerCase().includes('business') || card.innerText.toLowerCase().includes('professional') || index === 1) {
+                shouldHighlight = true;
+                badgeText = 'Most Popular';
+              }
+            }
+
+            if (shouldHighlight && !card.dataset.highlighted) {
               card.dataset.highlighted = "true";
               card.style.border = '2px solid #9333ea';
               card.style.position = 'relative';
               card.style.transform = 'scale(1.02)';
+              card.style.boxShadow = '0 0 20px rgba(147, 51, 234, 0.2)';
               
               const badge = document.createElement('div');
-              badge.innerText = 'Best for beginners';
+              badge.innerText = badgeText;
               badge.style.cssText = `
                 position: absolute;
                 top: -12px;
@@ -574,6 +626,7 @@
                 font-weight: bold;
                 white-space: nowrap;
                 z-index: 10;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
               `;
               card.appendChild(badge);
             }
@@ -603,6 +656,8 @@
     <div id="app-loader">
       <div class="spinner"></div>
     </div>
+    <div class="purple-glow-top-right"></div>
+    <div class="purple-glow-bottom-left"></div>
     <div id="root"></div>
   </body>
 </html>
