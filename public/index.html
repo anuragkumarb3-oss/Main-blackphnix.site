@@ -542,12 +542,6 @@
       (function() {
         const path = window.location.pathname;
         
-        // Redirect /pricing to /pricing-shared (the default pricing page)
-        if (path === '/pricing' || path === '/pricing/') {
-          window.location.replace('/pricing-shared');
-          return;
-        }
-
         // Catch all /pricing links and change them to /pricing-shared
         document.addEventListener('click', (e) => {
           const link = e.target.closest('a');
@@ -562,7 +556,7 @@
           document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
             const text = el.textContent.toLowerCase();
             if (text.includes('pricing') || text.includes('view pricing')) {
-              if (el.tagName === 'A') {
+              if (el.tagName === 'A' && (el.getAttribute('href') === '/pricing' || el.getAttribute('href') === '/pricing/')) {
                 el.href = '/pricing-shared';
               } else if (el.tagName === 'BUTTON' && !el.dataset.pricingRedirect) {
                 el.dataset.pricingRedirect = 'true';
