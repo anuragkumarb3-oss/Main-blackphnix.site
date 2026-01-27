@@ -6,3 +6,5 @@ database.db
 node_modules/
 dist/
 .cache/
+.replit
+.env
