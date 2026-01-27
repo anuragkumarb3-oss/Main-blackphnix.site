@@ -180,10 +180,9 @@ def pricing_shared():
 
 
 @app.route('/api/hosting-plans/list', methods=['GET'])
-@app.route("/api/hosting-plans/list", methods=["GET"])
 def get_hosting_plans_list():
-    plans = HostingPlan.query.order_by(HostingPlan.display_order).all()
-    return jsonify([plan.to_dict() for plan in plans])
+    # Alternative endpoint some templates use
+    return get_hosting_plans()
 
 
 @app.route('/api/hosting-plans/debug', methods=['GET'])

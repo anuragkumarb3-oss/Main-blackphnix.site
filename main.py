@@ -1,29 +1,25 @@
-import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from flask_cors import CORS
+import os
 
+app = Flask(__name__)
+import os
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-class Base(DeclarativeBase):
-    pass
+CORS(app)
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-db = SQLAlchemy(model_class=Base)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app = Flask(__name__, static_folder=None)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a-secret-key-for-sessions"
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-
+db = SQLAlchemy()
 db.init_app(app)
 
-with app.app_context():
-    import models  # noqa: F401
-    db.create_all()
+from routes import *
 
-import routes  # noqa: F401
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
