@@ -88,8 +88,13 @@
       button:contains("See Plans"),
       a:contains("See Plans"),
       .see-plans-button,
-      [class*="SeePlans"] {
+      [class*="SeePlans"],
+      [id*="SeePlans"],
+      button[class*="fixed"],
+      a[class*="fixed"] {
         display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
       }
 
       /* Global overlay loader */
@@ -551,6 +556,14 @@
         const path = window.location.pathname;
         
         document.addEventListener('click', (e) => {
+          const btn = e.target.closest('button, a');
+          if (btn && btn.innerText.toLowerCase().includes('see plans')) {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.style.display = 'none';
+            return;
+          }
+
           const link = e.target.closest('a');
           if (link && (link.getAttribute('href') === '/pricing' || link.getAttribute('href') === '/pricing/')) {
             e.preventDefault();
