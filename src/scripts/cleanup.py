@@ -1,6 +1,11 @@
 import os
+import sys
 import time
 from datetime import datetime, timedelta
+
+# Fix path to allow importing main and src modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from main import app, db
 from src.models import CyberAccount, SystemLog
 from src.services.cyberpanel_service import CyberPanelService
