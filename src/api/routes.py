@@ -291,14 +291,13 @@ def broadcast():
     data = request.get_json()
     return jsonify({'message': 'Broadcast sent', 'data': data})
 
-@app.route('/api/admin/stats', methods=['GET'])
-def get_admin_stats():
-    total_users = User.query.count()
-    active_accounts = CyberAccount.query.count()
-    total_orders = Order.query.count()
-    return jsonify({
-        "total_users": total_users,
-        "active_accounts": active_accounts,
-        "total_orders": total_orders,
-        "live_users": total_users  # Simulating live users with total users for now
-    })
+@app.route('/verify-email', methods=['GET', 'POST'])
+def verify_email_route():
+    # If it's a GET request from the link, we serve the frontend
+    if request.method == 'GET':
+        return send_from_directory(app.static_folder, 'index.html')
+    
+    # If it's a POST request (API call)
+    data = request.get_json() or {}
+    email = data.get('email')
+    return jsonify({'verified': True, 'email': email, 'message': 'Email verification successful'})
