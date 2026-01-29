@@ -372,6 +372,22 @@
               
               // 3. Fix null/undefined data displays and enhance order status
               document.querySelectorAll('[data-price], [data-plan], .order-status, .order-item').forEach(el => {
+                // Add VPS/SHARED suffix to plan names
+                if (el.dataset.planProcessed !== 'true') {
+                  const planText = el.textContent.toLowerCase();
+                  if (planText.includes('starter') || planText.includes('basic') || planText.includes('professional')) {
+                     const suffix = planText.includes('vps') ? '' : ' (SHARED)';
+                     if (!el.textContent.includes('(SHARED)') && !el.textContent.includes('(VPS)')) {
+                       el.textContent = el.textContent + suffix;
+                     }
+                  } else if (planText.includes('vps')) {
+                     if (!el.textContent.includes('(VPS)')) {
+                       el.textContent = el.textContent + ' (VPS)';
+                     }
+                  }
+                  el.dataset.planProcessed = 'true';
+                }
+
                 if (!el.textContent || el.textContent === 'undefined' || el.textContent === 'null') {
                   el.textContent = 'Active'; // Default to Active instead of blank/null
                   el.classList.add('status-active');
