@@ -91,10 +91,22 @@
       [class*="SeePlans"],
       [id*="SeePlans"],
       button[class*="fixed"],
-      a[class*="fixed"] {
+      a[class*="fixed"],
+      [class*="bg-purple-600"],
+      [class*="bg-indigo-600"],
+      a[href*="pricing"],
+      button:has(svg + span:contains("Plans")) {
         display: none !important;
         visibility: hidden !important;
+        opacity: 0 !important;
         pointer-events: none !important;
+        height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        top: -9999px !important;
       }
 
       /* Global overlay loader */
@@ -576,7 +588,7 @@
           if (btn && btn.innerText.toLowerCase().includes('see plans')) {
             e.preventDefault();
             e.stopPropagation();
-            btn.style.display = 'none';
+            btn.remove(); // Forcefully remove from DOM
             return;
           }
 
