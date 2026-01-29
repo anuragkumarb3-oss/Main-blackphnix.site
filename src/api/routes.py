@@ -132,6 +132,7 @@ def serve_spa(path):
 @app.route('/analytics')
 @app.route('/checkout')
 @app.route('/billing')
+@app.route('/free-domain')
 def catch_all_spa():
     return serve_index()
 
