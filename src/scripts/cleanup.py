@@ -14,7 +14,13 @@ cp_service = CyberPanelService()
 
 def cleanup_suspended_accounts():
     with app.app_context():
-        cutoff_date = datetime.utcnow() - timedelta(days=15)
+        now = datetime.utcnow()
+        
+        # 1. Auto-suspend expired accounts (example logic)
+        # In a real system, you'd check subscription expiry dates
+        
+        # 2. 15-day Cleanup
+        cutoff_date = now - timedelta(days=15)
         # Find accounts suspended more than 15 days ago
         to_delete = CyberAccount.query.filter(
             CyberAccount.status == 'suspended',

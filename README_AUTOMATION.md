@@ -37,5 +37,6 @@ This project implements a secure, production-ready automation system for hosting
 
 ## Security Best Practices
 - **No Hardcoding**: Credentials are strictly managed via environment variables.
-- **Credential Storage**: Passwords are auto-generated and stored in the database (hash local, plain for CP if needed for display, but ideally encrypted).
+- **Credential Encryption**: CyberPanel passwords are encrypted using Fernet (AES-128) before being stored in the database.
+- **Key Management**: The `ENCRYPTION_KEY` must be kept secret and is stored as a Replit secret.
 - **Rate Limiting**: Integrated via Flask infrastructure.

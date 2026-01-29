@@ -41,7 +41,9 @@ def register_and_provision():
     if cp_res.get('status') != 1:
         return jsonify({"error": "Provisioning failed", "detail": cp_res}), 500
 
+    # Create website and attempt auto SSL
     site_res = cp_service.create_website(subdomain, username)
+    # Note: CyberPanel createWebsite API with ssl=1 already attempts SSL
     
     # 3. Create CyberAccount record with encrypted password
     account = CyberAccount(
