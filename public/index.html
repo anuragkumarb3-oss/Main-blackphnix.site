@@ -232,6 +232,42 @@
         });
       })();
     </script>
+      // Universal Data Correction Layer - Fixes old IP and CyberPanel links
+      (function() {
+        const OLD_IP = '45.194.47.35';
+        const NEW_IP = '45.194.3.184';
+
+        function applyCorrections() {
+          // 1. Fix text nodes and attributes containing the old IP
+          document.querySelectorAll('*').forEach(el => {
+            if (el.children.length === 0 && el.textContent.includes(OLD_IP)) {
+              el.textContent = el.textContent.replace(new RegExp(OLD_IP, 'g'), NEW_IP);
+            }
+          });
+
+          // 2. Fix CyberPanel Access buttons
+          document.querySelectorAll('button, a').forEach(el => {
+            if (el.textContent.toLowerCase().includes('cyberpanel') || el.onclick?.toString().includes('8090')) {
+              if (el.tagName === 'A') {
+                el.href = `https://${NEW_IP}:8090`;
+                el.target = '_blank';
+              } else {
+                el.onclick = () => window.open(`https://${NEW_IP}:8090`, '_blank');
+              }
+            }
+          });
+        }
+
+        const correctionObserver = new MutationObserver(applyCorrections);
+        document.addEventListener('DOMContentLoaded', () => {
+          applyCorrections();
+          correctionObserver.observe(document.getElementById('root') || document.body, { 
+            childList: true, 
+            subtree: true 
+          });
+        });
+      })();
+    </script>
     <script>
       // Service Worker Management - Clear old caches and register clean SW
       (function() {
