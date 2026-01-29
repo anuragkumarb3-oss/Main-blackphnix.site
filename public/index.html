@@ -502,9 +502,17 @@
                   const suffix = isVPS ? ' (VPS)' : ' (SHARED)';
                   
                   if (!el.textContent.includes('(SHARED)') && !el.textContent.includes('(VPS)')) {
-                    // Only apply to plan titles/names
-                    if (el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3' || el.classList.contains('plan-name') || el.dataset.plan) {
-                      el.textContent = el.textContent.trim() + suffix;
+                    // Apply to ALL titles/names by looking at text content and hierarchy
+                    const isTitle = el.tagName.startsWith('H') || el.classList.contains('plan-name') || el.classList.contains('title') || el.getAttribute('data-plan');
+                    if (isTitle) {
+                      const label = document.createElement('span');
+                      label.innerText = suffix;
+                      label.style.fontSize = '0.6em';
+                      label.style.marginLeft = '8px';
+                      label.style.verticalAlign = 'middle';
+                      label.style.opacity = '0.7';
+                      label.style.color = isVPS ? '#a855f7' : '#9333ea';
+                      el.appendChild(label);
                     }
                   }
                   el.dataset.planProcessed = 'true';
