@@ -428,10 +428,18 @@
         const observer = new MutationObserver((mutations) => {
           mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
-              // 1. Update navigation links to point to /Shared
-              document.querySelectorAll('a[href="/pricing-shared"]').forEach(link => {
-                link.href = '/Shared';
-                link.textContent = 'Shared Hosting';
+              // 1. Update navigation links and "View Pricing" buttons
+              document.querySelectorAll('a[href="/pricing-shared"], button').forEach(el => {
+                if (el.tagName === 'A' && el.href.endsWith('/pricing-shared')) {
+                  el.href = '/Shared';
+                  el.textContent = 'Shared Hosting';
+                }
+                if (el.textContent.trim() === 'View Pricing') {
+                   el.onclick = (e) => {
+                     e.preventDefault();
+                     window.location.href = '/Shared';
+                   };
+                }
               });
 
               // 2. Fix input types (number -> text)
