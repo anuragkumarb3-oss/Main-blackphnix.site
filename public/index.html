@@ -497,15 +497,15 @@
                 // Add VPS/SHARED suffix to plan names
                 if (el.dataset.planProcessed !== 'true') {
                   const planText = el.textContent.toLowerCase();
-                  if (planText.includes('starter') || planText.includes('basic') || planText.includes('professional')) {
-                     const suffix = planText.includes('vps') ? '' : ' (SHARED)';
-                     if (!el.textContent.includes('(SHARED)') && !el.textContent.includes('(VPS)')) {
-                       el.textContent = el.textContent + suffix;
-                     }
-                  } else if (planText.includes('vps')) {
-                     if (!el.textContent.includes('(VPS)')) {
-                       el.textContent = el.textContent + ' (VPS)';
-                     }
+                  // Detect VPS vs Shared based on content or context
+                  const isVPS = planText.includes('vps') || el.closest('.vps-section, #vps-plans');
+                  const suffix = isVPS ? ' (VPS)' : ' (SHARED)';
+                  
+                  if (!el.textContent.includes('(SHARED)') && !el.textContent.includes('(VPS)')) {
+                    // Only apply to plan titles/names
+                    if (el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3' || el.classList.contains('plan-name') || el.dataset.plan) {
+                      el.textContent = el.textContent.trim() + suffix;
+                    }
                   }
                   el.dataset.planProcessed = 'true';
                 }
