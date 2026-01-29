@@ -114,11 +114,27 @@ def serve_spa(path):
     if os.path.isfile(file_path):
         return send_from_directory('public', path)
     
+    # Check if path starts with api/ or is a known api route
+    if path.startswith('api/'):
+        return jsonify({"error": "Not Found"}), 404
+    
     response = send_from_directory('public', 'index.html')
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+@app.route('/pricing')
+@app.route('/pricing-shared')
+@app.route('/pricing-vps')
+@app.route('/login')
+@app.route('/dashboard')
+@app.route('/support')
+@app.route('/analytics')
+@app.route('/checkout')
+@app.route('/billing')
+def catch_all_spa():
+    return serve_index()
 
 @app.route('/api/hosting-plans/list', methods=['GET'])
 @app.route("/api/hosting-plans/list", methods=["GET"])
