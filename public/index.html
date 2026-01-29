@@ -83,20 +83,6 @@
         opacity: 1;
       }
       
-      /* Block "See Plans" button from showing up */
-      [class*="SeePlans"], 
-      [id*="SeePlans"],
-      .see-plans-button,
-      [data-testid="see-plans"],
-      [aria-label="See Plans"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        position: absolute !important;
-        top: -9999px !important;
-      }
-
       /* Global overlay loader */
       #app-loader {
         position: fixed;
@@ -571,35 +557,6 @@
       (function() {
         const path = window.location.pathname;
         
-        // Immediate removal of all "See Plans" elements before any render
-        const killPlans = () => {
-          document.querySelectorAll('button, a').forEach(btn => {
-            if (btn.innerText.toLowerCase().includes('see plans')) {
-              btn.remove();
-            }
-          });
-        };
-        killPlans();
-        
-        // Also run it periodically to catch dynamic renders
-        setInterval(killPlans, 500);
-
-        document.addEventListener('click', (e) => {
-          const btn = e.target.closest('button, a');
-          // Aggressive removal of any "See Plans" elements
-          if (btn && btn.innerText.toLowerCase().includes('see plans')) {
-            e.preventDefault();
-            e.stopPropagation();
-            btn.remove();
-            return;
-          }
-
-          const link = e.target.closest('a');
-          if (link && (link.getAttribute('href') === '/pricing' || link.getAttribute('href') === '/pricing/')) {
-            e.preventDefault();
-          }
-        }, true);
-
         const redirectPricingLinks = () => {
           document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
             const text = el.textContent.toLowerCase();
