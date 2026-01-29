@@ -82,36 +82,22 @@
       #root.ready {
         opacity: 1;
       }
-
-      /* Hide "See Plans" buttons */
-      button:has(span:contains("See Plans")), 
+      
+      /* Block "See Plans" button from showing up */
+      [class*="SeePlans"], 
+      [id*="SeePlans"],
       button:contains("See Plans"),
       a:contains("See Plans"),
       .see-plans-button,
-      [class*="SeePlans"],
-      [id*="SeePlans"],
-      button[class*="fixed"],
-      a[class*="fixed"],
-      [class*="bg-purple-600"],
-      [class*="bg-indigo-600"],
-      a[href*="pricing"],
-      button:has(svg + span:contains("Plans")),
-      div:has(> button:contains("See Plans")),
-      section:has(button:contains("See Plans")),
       [data-testid="see-plans"],
-      [aria-label="See Plans"] {
+      [aria-label="See Plans"],
+      button:has(span:contains("See Plans")) {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
-        height: 0 !important;
-        width: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: hidden !important;
         position: absolute !important;
         top: -9999px !important;
-        left: -9999px !important;
       }
 
       /* Global overlay loader */
@@ -353,13 +339,6 @@
               // 2. Reorder plans (Starter first) and highlight
               const planContainer = document.querySelector('.plans-container, .pricing-grid');
               if (planContainer) {
-                // Remove any "See Plans" buttons that might be hardcoded or dynamically added
-                document.querySelectorAll('button, a').forEach(btn => {
-                  if (btn.innerText.toLowerCase().includes('see plans')) {
-                    btn.remove();
-                  }
-                });
-
                 const plans = Array.from(planContainer.children);
                 const starterPlan = plans.find(p => p.innerText.toLowerCase().includes('starter'));
                 if (starterPlan) {
