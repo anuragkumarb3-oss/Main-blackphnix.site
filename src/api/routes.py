@@ -15,36 +15,43 @@ def generate_password(length=12):
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 @app.route('/api/auth/register', methods=['POST'])
-def register_and_provision():
+def register_user():
     data = request.get_json()
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    subdomain = data.get('subdomain') # e.g. "user1.blackphnix.site"
 
-    if not all([username, email, password, subdomain]):
+    if not all([username, email, password]):
         return jsonify({"error": "Missing fields"}), 400
 
     if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
         return jsonify({"error": "User already exists"}), 400
 
-    # 1. Create local user
     user = User(username=username, email=email)
     user.password_hash = password 
     db.session.add(user)
-    db.session.flush()
+    db.session.commit()
 
-    # 2. CyberPanel Provisioning
-    cp_pass = generate_password()
-    # Ensure we use the correct field names for CyberPanel API
-    cp_res = cp_service.create_user(username, cp_pass, email)
+    return jsonify({"message": "User registered successfully"}), 201
+
+@app.route('/api/domain/claim', methods=['POST'])
+def claim_domain_and_provision():
+    data = request.get_json()
+    user_id = data.get('userId')
+    subdomain = data.get('subdomain')
     
-    # 3. Handle CyberPanel API response
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # 2. CyberPanel Provisioning (Triggered ONLY on domain claim)
+    cp_pass = generate_password()
+    username = user.username # Or generate a unique one
+    cp_res = cp_service.create_user(username, cp_pass, user.email)
+    
     if cp_res.get('status') == 1 or 'success' in str(cp_res).lower():
-        # Create website and attempt auto SSL
         cp_service.create_website(subdomain, username)
         
-        # 4. Create CyberAccount record with encrypted password
         account = CyberAccount(
             user_id=user.id, 
             domain=subdomain, 
@@ -52,23 +59,12 @@ def register_and_provision():
             cp_password_encrypted=encryption_service.encrypt(cp_pass)
         )
         db.session.add(account)
+        db.session.add(SystemLog(level="INFO", message=f"Provisioned {subdomain} for {username}"))
+        db.session.commit()
         
-        log = SystemLog(level="INFO", message=f"Provisioned account for {username} on {subdomain}")
-        db.session.add(log)
-    else:
-        logging.error(f"Provisioning failed for {username}: {json.dumps(cp_res)}")
+        return jsonify({"message": "Domain claimed and provisioned", "credentials": {"username": username, "password": cp_pass}})
     
-    db.session.commit()
-
-    return jsonify({
-        "message": "Account provisioned successfully",
-        "credentials": {
-            "control_panel": f"https://{os.getenv('HOSTING_SERVER_IP', '45.194.3.184')}:8090",
-            "username": username,
-            "password": cp_pass,
-            "domain": subdomain
-        }
-    }), 201
+    return jsonify({"error": "Provisioning failed", "detail": cp_res}), 500
 
 @app.route('/api/webhooks/payment-success', methods=['POST'])
 def payment_webhook():

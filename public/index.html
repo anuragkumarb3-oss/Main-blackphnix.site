@@ -535,13 +535,36 @@
                 }
               });
 
-              // Support Ticket Interception: Prevent redirect to Gmail, handle via app UI
-              document.querySelectorAll('a[href^="mailto:support@blackphnix.site"]').forEach(link => {
-                if (!link.dataset.supportIntercepted) {
-                  link.dataset.supportIntercepted = "true";
-                  link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    // On request button click
+                    const handleRequest = async () => {
+                      const subdomain = document.querySelector('input[placeholder="Enter desired subdomain"]').value;
+                      if(!subdomain) return alert("Enter subdomain");
+                      
+                      const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
+                      const user = JSON.parse(userStr);
+                      
+                      const response = await fetch('/api/domain/claim', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                          userId: user.uid || user.id,
+                          subdomain: subdomain + ".blackphnix.site"
+                        })
+                      });
+                      
+                      const result = await response.json();
+                      if(response.ok) {
+                        alert("Domain Claimed! check your dashboard.");
+                      } else {
+                        alert("Error: " + (result.error || "Failed to claim"));
+                      }
+                    };
+                    
+                    document.querySelectorAll('button').forEach(btn => {
+                      if(btn.textContent.trim() === 'Request') {
+                        btn.onclick = handleRequest;
+                      }
+                    });
                     
                     // Show a simple support form or alert
                     const root = document.getElementById('root');
