@@ -200,7 +200,7 @@
               window.firebase.firestore.prototype.collection = function(path) {
                 const col = originalCollection.apply(this, arguments);
                 
-                // Patch add() to inject userId
+                // Patch add() to inject userId and ensure strict compliance
                 const originalAdd = col.add;
                 col.add = function(data) {
                   const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
@@ -208,8 +208,15 @@
                     const user = JSON.parse(userStr);
                     if (user && user.uid) {
                       data.userId = user.uid;
+                      // Ensure the domain field is always present for 'domains' collection
+                      if (path === 'domains' && !data.domain) {
+                        data.domain = ''; 
+                      }
+                      console.log(`Auto-injected userId ${user.uid} into ${path}`);
                     }
-                  } catch (e) {}
+                  } catch (e) {
+                    console.error("Failed to inject userId:", e);
+                  }
                   return originalAdd.apply(this, arguments);
                 };
 
