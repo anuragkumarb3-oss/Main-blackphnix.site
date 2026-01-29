@@ -345,8 +345,4 @@ def verify_email():
     email = data.get('email')
     return jsonify({'verified': True, 'email': email})
 
-# Catch pricing-shared and send to SPA
-@app.route("/pricing-shared")
-def pricing_shared_spa():
-    return serve_index()
 
