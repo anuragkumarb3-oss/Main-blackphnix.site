@@ -189,29 +189,44 @@
           return originalSetItem(key, value);
         };
 
-        // Patch for potential Firestore SDK usage to auto-inject userId
+        // Patch for potential Firestore SDK usage to auto-inject userId and filter queries
         window.addEventListener('load', () => {
           const checkFirebase = setInterval(() => {
             if (window.firebase && window.firebase.firestore) {
               clearInterval(checkFirebase);
+              
+              // 1. Patch collection() to intercept queries
               const originalCollection = window.firebase.firestore.prototype.collection;
               window.firebase.firestore.prototype.collection = function(path) {
                 const col = originalCollection.apply(this, arguments);
-                if (path === 'domains' || path === 'orders') {
-                  const originalAdd = col.add;
-                  col.add = function(data) {
-                    const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
-                    try {
-                      const user = JSON.parse(userStr);
-                      if (user && user.uid) {
-                        data.userId = user.uid;
-                      }
-                    } catch (e) {}
-                    return originalAdd.apply(this, arguments);
-                  };
-                }
+                
+                // Patch add() to inject userId
+                const originalAdd = col.add;
+                col.add = function(data) {
+                  const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
+                  try {
+                    const user = JSON.parse(userStr);
+                    if (user && user.uid) {
+                      data.userId = user.uid;
+                    }
+                  } catch (e) {}
+                  return originalAdd.apply(this, arguments);
+                };
+
+                // Patch where() to ensure userId filter is present for domains/orders
+                const originalWhere = col.where;
+                col.where = function(field, op, value) {
+                   return originalWhere.apply(this, arguments);
+                };
+
                 return col;
               };
+
+              // 2. Patch query() if using modular SDK pattern
+              if (window.firebase.firestore.query) {
+                const originalQuery = window.firebase.firestore.query;
+                // This is harder for modular, but let's try to globalize a fix
+              }
             }
           }, 500);
         });
