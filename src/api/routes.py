@@ -291,6 +291,10 @@ def broadcast():
     data = request.get_json()
     return jsonify({'message': 'Broadcast sent', 'data': data})
 
+@app.route('/Shared', methods=['GET'])
+def shared_page():
+    return send_from_directory(app.static_folder, 'index.html')
+
 @app.route('/verify-email', methods=['GET', 'POST'])
 def verify_email_route():
     # If it's a GET request from the link, we serve the frontend

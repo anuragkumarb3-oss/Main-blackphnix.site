@@ -438,7 +438,9 @@
                 if (el.textContent.trim() === 'View Pricing') {
                    el.onclick = (e) => {
                      e.preventDefault();
-                     window.location.href = '/Shared';
+                     window.history.pushState({}, '', '/Shared');
+                     // Trigger a popstate or custom event to notify React router
+                     window.dispatchEvent(new PopStateEvent('popstate'));
                    };
                 }
               });
