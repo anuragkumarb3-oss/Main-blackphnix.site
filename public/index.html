@@ -206,14 +206,15 @@
                   const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
                   try {
                     const user = JSON.parse(userStr);
-                    if (user && user.uid) {
-                      data.userId = user.uid;
+                    const uid = user?.uid || user?.userId;
+                    if (uid) {
+                      data.userId = uid;
                       data.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
                       // Ensure the domain field is always present for 'domains' collection
                       if (path === 'domains' && !data.domain) {
                         data.domain = ''; 
                       }
-                      console.log(`[FIREBASE BOT] Auto-injected userId ${user.uid} into ${path}`);
+                      console.log(`[FIREBASE BOT] Auto-injected userId ${uid} into ${path}`);
                     } else {
                       console.warn("[FIREBASE BOT] User not found in storage, permission might fail.");
                     }
@@ -429,8 +430,8 @@
           mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
               // 1. Update navigation links and "View Pricing" buttons
-              document.querySelectorAll('a[href="/pricing-shared"], button').forEach(el => {
-                if (el.tagName === 'A' && el.href.endsWith('/pricing-shared')) {
+              document.querySelectorAll('a, button').forEach(el => {
+                if (el.tagName === 'A' && el.getAttribute('href') === '/pricing-shared') {
                   el.href = '/Shared';
                   el.textContent = 'Shared Hosting';
                 }
