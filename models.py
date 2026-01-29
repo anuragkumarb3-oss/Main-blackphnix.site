@@ -1,6 +1,32 @@
 from datetime import datetime
 from main import db
 
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class CyberAccount(db.Model):
+    __tablename__ = 'cyber_accounts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    domain = db.Column(db.String(255), unique=True)
+    cp_username = db.Column(db.String(80))
+    status = db.Column(db.String(20), default='active') # active, suspended, deleted
+    suspension_date = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class SystemLog(db.Model):
+    __tablename__ = 'system_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    level = db.Column(db.String(20))
+    message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class HostingPlan(db.Model):
     __tablename__ = 'hosting_plans'
     

@@ -1,8 +1,85 @@
 import json
+import secrets
+import string
 from flask import request, jsonify, send_from_directory
 from main import app, db
-from models import HostingPlan, Order, Ticket
+from models import HostingPlan, Order, Ticket, User, CyberAccount, SystemLog
+from cyberpanel_service import CyberPanelService
 
+cp_service = CyberPanelService()
+
+def generate_password(length=12):
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+@app.route('/api/auth/register', methods=['POST'])
+def register_and_provision():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    subdomain = data.get('subdomain') # e.g. "user1.blackphnix.site"
+
+    if not all([username, email, password, subdomain]):
+        return jsonify({"error": "Missing fields"}), 400
+
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    # 1. Create local user
+    user = User(username=username, email=email)
+    # Note: In production use password hashing
+    user.password_hash = password 
+    db.session.add(user)
+    db.session.flush()
+
+    # 2. CyberPanel Provisioning
+    cp_pass = generate_password()
+    cp_res = cp_service.create_user(username, cp_pass, email)
+    
+    if cp_res.get('status') != 1:
+        return jsonify({"error": "Provisioning failed", "detail": cp_res}), 500
+
+    site_res = cp_service.create_website(subdomain, username)
+    
+    # 3. Create CyberAccount record
+    account = CyberAccount(user_id=user.id, domain=subdomain, cp_username=username)
+    db.session.add(account)
+    
+    log = SystemLog(level="INFO", message=f"Provisioned account for {username} on {subdomain}")
+    db.session.add(log)
+    
+    db.session.commit()
+
+    return jsonify({
+        "message": "Account provisioned successfully",
+        "credentials": {
+            "control_panel": "https://45.194.3.184:8090",
+            "username": username,
+            "password": cp_pass,
+            "domain": subdomain
+        }
+    }), 201
+
+@app.route('/api/admin/accounts', methods=['GET'])
+def list_accounts():
+    accounts = CyberAccount.query.all()
+    return jsonify([{
+        "id": a.id,
+        "domain": a.domain,
+        "username": a.cp_username,
+        "status": a.status,
+        "suspension_date": a.suspension_date.isoformat() if a.suspension_date else None
+    } for a in accounts])
+
+@app.route('/api/admin/logs', methods=['GET'])
+def get_logs():
+    logs = SystemLog.query.order_by(SystemLog.created_at.desc()).limit(100).all()
+    return jsonify([{
+        "level": l.level,
+        "message": l.message,
+        "time": l.created_at.isoformat()
+    } for l in logs])
 
 @app.route('/')
 def serve_index():
