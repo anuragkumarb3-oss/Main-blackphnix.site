@@ -7,16 +7,16 @@ import sys
 # Add root to python path to allow absolute imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='public', static_url_path='')
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 CORS(app)
 
-db = SQLAlchemy()
-db.init_app(app)
+db = SQLAlchemy(app)
 
+# Import routes after db initialization
 from src.api.routes import *
 
 with app.app_context():
