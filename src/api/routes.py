@@ -125,7 +125,6 @@ def serve_spa(path):
     return response
 
 @app.route('/Shared')
-@app.route('/pricing-shared')
 @app.route('/pricing-vps')
 @app.route('/login')
 @app.route('/dashboard')
@@ -135,6 +134,11 @@ def serve_spa(path):
 @app.route('/billing')
 def catch_all_spa():
     return serve_index()
+
+@app.route('/pricing-shared')
+def redirect_shared():
+    from flask import redirect
+    return redirect('/Shared', code=301)
 
 @app.route('/api/hosting-plans/list', methods=['GET'])
 @app.route("/api/hosting-plans/list", methods=["GET"])

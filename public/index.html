@@ -570,6 +570,12 @@
       (function() {
         const path = window.location.pathname;
         
+        // Immediate redirect from old path
+        if (path === '/pricing-shared') {
+          window.location.replace('/Shared');
+          return;
+        }
+
         const redirectPricingLinks = () => {
           document.querySelectorAll('a[href*="/pricing"], button').forEach(el => {
             const text = el.textContent.toLowerCase();
