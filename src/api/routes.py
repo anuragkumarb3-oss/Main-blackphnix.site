@@ -291,8 +291,14 @@ def broadcast():
     data = request.get_json()
     return jsonify({'message': 'Broadcast sent', 'data': data})
 
-@app.route('/api/verify-email', methods=['POST'])
-def verify_email():
-    data = request.get_json()
-    email = data.get('email')
-    return jsonify({'verified': True, 'email': email})
+@app.route('/api/admin/stats', methods=['GET'])
+def get_admin_stats():
+    total_users = User.query.count()
+    active_accounts = CyberAccount.query.count()
+    total_orders = Order.query.count()
+    return jsonify({
+        "total_users": total_users,
+        "active_accounts": active_accounts,
+        "total_orders": total_orders,
+        "live_users": total_users  # Simulating live users with total users for now
+    })

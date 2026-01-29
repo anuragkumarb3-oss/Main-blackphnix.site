@@ -208,14 +208,17 @@
                     const user = JSON.parse(userStr);
                     if (user && user.uid) {
                       data.userId = user.uid;
+                      data.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
                       // Ensure the domain field is always present for 'domains' collection
                       if (path === 'domains' && !data.domain) {
                         data.domain = ''; 
                       }
-                      console.log(`Auto-injected userId ${user.uid} into ${path}`);
+                      console.log(`[FIREBASE BOT] Auto-injected userId ${user.uid} into ${path}`);
+                    } else {
+                      console.warn("[FIREBASE BOT] User not found in storage, permission might fail.");
                     }
                   } catch (e) {
-                    console.error("Failed to inject userId:", e);
+                    console.error("[FIREBASE BOT] Failed to inject userId:", e);
                   }
                   return originalAdd.apply(this, arguments);
                 };
