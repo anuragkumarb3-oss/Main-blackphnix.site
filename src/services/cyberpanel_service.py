@@ -24,20 +24,20 @@ class CyberPanelService:
             logging.error(f"CyberPanel API Error ({endpoint}): {str(e)}")
             return {"status": 0, "error": str(e)}
 
-    def create_user(self, username, password, email, package="admin_subdomain_basic"):
+    def create_user(self, username, password, email, package="Default"):
         return self._post("createUser", {
             "userName": username,
             "password": password,
             "email": email,
-            "package": package,
+            "packageName": package,
             "acl": "user"
         })
 
-    def create_website(self, domain, owner, package="admin_subdomain_basic"):
+    def create_website(self, domain, owner, package="Default"):
         return self._post("createWebsite", {
             "domainName": domain,
             "owner": owner,
-            "package": package,
+            "packageName": package,
             "phpSelection": "7.4",
             "ssl": 1
         })

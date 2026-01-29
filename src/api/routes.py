@@ -36,26 +36,27 @@ def register_and_provision():
 
     # 2. CyberPanel Provisioning
     cp_pass = generate_password()
+    # Ensure we use the correct field names for CyberPanel API
     cp_res = cp_service.create_user(username, cp_pass, email)
     
-    if cp_res.get('status') != 1:
-        return jsonify({"error": "Provisioning failed", "detail": cp_res}), 500
-
-    # Create website and attempt auto SSL
-    site_res = cp_service.create_website(subdomain, username)
-    # Note: CyberPanel createWebsite API with ssl=1 already attempts SSL
-    
-    # 3. Create CyberAccount record with encrypted password
-    account = CyberAccount(
-        user_id=user.id, 
-        domain=subdomain, 
-        cp_username=username,
-        cp_password_encrypted=encryption_service.encrypt(cp_pass)
-    )
-    db.session.add(account)
-    
-    log = SystemLog(level="INFO", message=f"Provisioned account for {username} on {subdomain}")
-    db.session.add(log)
+    # 3. Handle CyberPanel API response
+    if cp_res.get('status') == 1 or 'success' in str(cp_res).lower():
+        # Create website and attempt auto SSL
+        cp_service.create_website(subdomain, username)
+        
+        # 4. Create CyberAccount record with encrypted password
+        account = CyberAccount(
+            user_id=user.id, 
+            domain=subdomain, 
+            cp_username=username,
+            cp_password_encrypted=encryption_service.encrypt(cp_pass)
+        )
+        db.session.add(account)
+        
+        log = SystemLog(level="INFO", message=f"Provisioned account for {username} on {subdomain}")
+        db.session.add(log)
+    else:
+        logging.error(f"Provisioning failed for {username}: {json.dumps(cp_res)}")
     
     db.session.commit()
 
