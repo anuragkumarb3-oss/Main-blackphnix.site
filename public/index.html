@@ -588,13 +588,15 @@
             let shouldHighlight = false;
             let badgeText = '';
 
-              if (card.innerText.toLowerCase().includes('starter')) {
+            const cardText = card.innerText.toLowerCase();
+            if (path.includes('/pricing-shared') || path === '/pricing' || path === '/pricing/') {
+              if (cardText.includes('starter')) {
                 shouldHighlight = true;
                 badgeText = 'Best for beginners';
               }
             } else if (path.includes('/pricing-vps')) {
               // Highlight the Business or Professional plan for VPS
-              if (card.innerText.toLowerCase().includes('business') || card.innerText.toLowerCase().includes('professional') || index === 1) {
+              if (cardText.includes('business') || cardText.includes('professional') || index === 1) {
                 shouldHighlight = true;
                 badgeText = 'Most Popular';
               }
@@ -631,9 +633,7 @@
 
         // Watch for dynamic content and apply highlights on both pricing pages
         const highlightObserver = new MutationObserver((mutations) => {
-          const path = window.location.pathname;
-            applyHighlights();
-          }
+          applyHighlights();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
