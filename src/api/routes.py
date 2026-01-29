@@ -62,7 +62,7 @@ def register_and_provision():
     return jsonify({
         "message": "Account provisioned successfully",
         "credentials": {
-            "control_panel": "https://45.194.3.184:8090",
+            "control_panel": f"https://{os.getenv('HOSTING_SERVER_IP', '45.194.3.184')}:8090",
             "username": username,
             "password": cp_pass,
             "domain": subdomain
