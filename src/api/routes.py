@@ -5,8 +5,10 @@ from flask import request, jsonify, send_from_directory
 from main import app, db
 from src.models import HostingPlan, Order, Ticket, User, CyberAccount, SystemLog
 from src.services.cyberpanel_service import CyberPanelService
+from src.services.encryption_service import EncryptionService
 
 cp_service = CyberPanelService()
+encryption_service = EncryptionService()
 
 def generate_password(length=12):
     alphabet = string.ascii_letters + string.digits
@@ -28,7 +30,6 @@ def register_and_provision():
 
     # 1. Create local user
     user = User(username=username, email=email)
-    # Note: In production use password hashing
     user.password_hash = password 
     db.session.add(user)
     db.session.flush()
@@ -42,8 +43,13 @@ def register_and_provision():
 
     site_res = cp_service.create_website(subdomain, username)
     
-    # 3. Create CyberAccount record
-    account = CyberAccount(user_id=user.id, domain=subdomain, cp_username=username)
+    # 3. Create CyberAccount record with encrypted password
+    account = CyberAccount(
+        user_id=user.id, 
+        domain=subdomain, 
+        cp_username=username,
+        cp_password_encrypted=encryption_service.encrypt(cp_pass)
+    )
     db.session.add(account)
     
     log = SystemLog(level="INFO", message=f"Provisioned account for {username} on {subdomain}")
@@ -60,6 +66,13 @@ def register_and_provision():
             "domain": subdomain
         }
     }), 201
+
+@app.route('/api/webhooks/payment-success', methods=['POST'])
+def payment_webhook():
+    data = request.get_json()
+    # In a real scenario, verify signature and check order details
+    # For now, we'll simulate the registration trigger
+    return jsonify({"message": "Webhook received"}), 200
 
 @app.route('/api/admin/accounts', methods=['GET'])
 def list_accounts():
@@ -89,7 +102,6 @@ def serve_index():
     response.headers['Expires'] = '0'
     return response
 
-
 @app.route('/<path:path>')
 def serve_spa(path):
     import os
@@ -106,25 +118,21 @@ def serve_spa(path):
     response.headers['Expires'] = '0'
     return response
 
-
 @app.route('/api/hosting-plans/list', methods=['GET'])
 @app.route("/api/hosting-plans/list", methods=["GET"])
 def get_hosting_plans_list():
     plans = HostingPlan.query.order_by(HostingPlan.display_order).all()
     return jsonify([plan.to_dict() for plan in plans])
 
-
 @app.route('/api/hosting-plans/debug', methods=['GET'])
 def debug_hosting_plans():
     plans = HostingPlan.query.all()
     return jsonify([plan.to_dict() for plan in plans])
 
-
 @app.route('/api/hosting-plans/all', methods=['GET'])
 def get_all_hosting_plans():
     plans = HostingPlan.query.order_by(HostingPlan.plan_type, HostingPlan.display_order).all()
     return jsonify([plan.to_dict() for plan in plans])
-
 
 @app.route('/api/hosting-plans', methods=['POST'])
 def create_hosting_plan():
@@ -152,7 +160,6 @@ def create_hosting_plan():
     db.session.commit()
     
     return jsonify(plan.to_dict()), 201
-
 
 @app.route('/api/hosting-plans/<int:plan_id>', methods=['PUT'])
 def update_hosting_plan(plan_id):
@@ -194,14 +201,12 @@ def update_hosting_plan(plan_id):
     
     return jsonify(plan.to_dict())
 
-
 @app.route('/api/hosting-plans/<int:plan_id>', methods=['DELETE'])
 def delete_hosting_plan(plan_id):
     plan = HostingPlan.query.get_or_404(plan_id)
     db.session.delete(plan)
     db.session.commit()
     return jsonify({'message': 'Plan deleted successfully'})
-
 
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
@@ -211,7 +216,6 @@ def get_orders():
     else:
         orders = Order.query.order_by(Order.created_at.desc()).all()
     return jsonify([order.to_dict() for order in orders])
-
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():
@@ -230,8 +234,7 @@ def create_order():
     db.session.add(order)
     db.session.commit()
     
-    return jsonify(order.to_dict()), 201
-
+    return jsonify(order.to_edit()), 201
 
 @app.route('/api/tickets', methods=['GET'])
 def get_tickets():
@@ -241,7 +244,6 @@ def get_tickets():
     else:
         tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
     return jsonify([ticket.to_dict() for ticket in tickets])
-
 
 @app.route('/api/tickets', methods=['POST'])
 def create_ticket():
@@ -260,17 +262,13 @@ def create_ticket():
     
     return jsonify(ticket.to_dict()), 201
 
-
 @app.route('/api/broadcast', methods=['POST'])
 def broadcast():
     data = request.get_json()
     return jsonify({'message': 'Broadcast sent', 'data': data})
-
 
 @app.route('/api/verify-email', methods=['POST'])
 def verify_email():
     data = request.get_json()
     email = data.get('email')
     return jsonify({'verified': True, 'email': email})
-
-

@@ -16,6 +16,7 @@ class CyberAccount(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     domain = db.Column(db.String(255), unique=True)
     cp_username = db.Column(db.String(80))
+    cp_password_encrypted = db.Column(db.String(512)) # Encrypted password
     status = db.Column(db.String(20), default='active') # active, suspended, deleted
     suspension_date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -6,3 +6,5 @@ sqlalchemy
 flask-cors
 psycopg2-binary
 requests
+cryptography
+routes
