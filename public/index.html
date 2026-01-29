@@ -173,6 +173,51 @@
       }
     </style>
     <script>
+      // Firestore Rule Compatibility Layer
+      (function() {
+        // Intercept Firestore requests to ensure they match the new security rules
+        const originalSetItem = localStorage.setItem.bind(localStorage);
+        localStorage.setItem = function(key, value) {
+          if (key === 'user' || key === 'replit_auth') {
+            try {
+              const user = JSON.parse(value);
+              // Ensure userId is consistently available as 'uid' or 'userId'
+              if (user && user.uid && !user.userId) user.userId = user.uid;
+              value = JSON.stringify(user);
+            } catch (e) {}
+          }
+          return originalSetItem(key, value);
+        };
+
+        // Patch for potential Firestore SDK usage to auto-inject userId
+        window.addEventListener('load', () => {
+          const checkFirebase = setInterval(() => {
+            if (window.firebase && window.firebase.firestore) {
+              clearInterval(checkFirebase);
+              const originalCollection = window.firebase.firestore.prototype.collection;
+              window.firebase.firestore.prototype.collection = function(path) {
+                const col = originalCollection.apply(this, arguments);
+                if (path === 'domains' || path === 'orders') {
+                  const originalAdd = col.add;
+                  col.add = function(data) {
+                    const userStr = localStorage.getItem('user') || localStorage.getItem('replit_auth');
+                    try {
+                      const user = JSON.parse(userStr);
+                      if (user && user.uid) {
+                        data.userId = user.uid;
+                      }
+                    } catch (e) {}
+                    return originalAdd.apply(this, arguments);
+                  };
+                }
+                return col;
+              };
+            }
+          }, 500);
+        });
+      })();
+    </script>
+    <script>
       // Service Worker Management - Clear old caches and register clean SW
       (function() {
         if ('serviceWorker' in navigator) {
