@@ -124,7 +124,7 @@ def serve_spa(path):
     response.headers['Expires'] = '0'
     return response
 
-@app.route('/pricing')
+@app.route('/Shared')
 @app.route('/pricing-shared')
 @app.route('/pricing-vps')
 @app.route('/login')

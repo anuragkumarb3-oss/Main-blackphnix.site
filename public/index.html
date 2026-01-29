@@ -296,6 +296,13 @@
                 if (node.nodeType === 1) { // Element node
                   // Apply entrance animation to containers
                   if (node.tagName === 'SECTION' || node.classList.contains('container')) {
+                    // Update section title for /Shared page
+                    if (window.location.pathname === '/Shared') {
+                      const title = node.querySelector('h1, h2');
+                      if (title && (title.innerText.includes('Shared') || title.innerText.includes('Infrastructure'))) {
+                        title.innerHTML = 'Shared <span class="text-purple-500">Hosting</span>';
+                      }
+                    }
                     node.classList.add('reveal');
                     setTimeout(() => node.classList.add('active'), 50);
                   }
@@ -314,7 +321,13 @@
         const observer = new MutationObserver((mutations) => {
           mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
-              // 1. Fix input types (number -> text)
+              // 1. Update navigation links to point to /Shared
+              document.querySelectorAll('a[href="/pricing-shared"]').forEach(link => {
+                link.href = '/Shared';
+                link.textContent = 'Shared Hosting';
+              });
+
+              // 2. Fix input types (number -> text)
               document.querySelectorAll('input[type="number"]').forEach(input => {
                 input.type = 'text';
               });
@@ -589,7 +602,7 @@
             let badgeText = '';
 
             const cardText = card.innerText.toLowerCase();
-            if (path.includes('/pricing-shared') || path === '/pricing' || path === '/pricing/') {
+            if (path.includes('/Shared') || path.includes('/pricing-shared') || path === '/pricing' || path === '/pricing/') {
               if (cardText.includes('starter')) {
                 shouldHighlight = true;
                 badgeText = 'Best for beginners';
