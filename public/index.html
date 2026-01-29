@@ -83,6 +83,15 @@
         opacity: 1;
       }
 
+      /* Hide "See Plans" buttons */
+      button:has(span:contains("See Plans")), 
+      button:contains("See Plans"),
+      a:contains("See Plans"),
+      .see-plans-button,
+      [class*="SeePlans"] {
+        display: none !important;
+      }
+
       /* Global overlay loader */
       #app-loader {
         position: fixed;
@@ -524,7 +533,6 @@
                       if (!localStorage.getItem('replit_auth') && !localStorage.getItem('user') && !document.cookie.includes('REPLIT_AUTH')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        alert('Please login first to proceed with your plan selection.');
                         window.location.href = '/login';
                       }
                     }, true);
