@@ -86,12 +86,9 @@
       /* Block "See Plans" button from showing up */
       [class*="SeePlans"], 
       [id*="SeePlans"],
-      button:contains("See Plans"),
-      a:contains("See Plans"),
       .see-plans-button,
       [data-testid="see-plans"],
-      [aria-label="See Plans"],
-      button:has(span:contains("See Plans")) {
+      [aria-label="See Plans"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
