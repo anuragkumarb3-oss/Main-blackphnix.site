@@ -3,8 +3,8 @@ import secrets
 import string
 from flask import request, jsonify, send_from_directory
 from main import app, db
-from models import HostingPlan, Order, Ticket, User, CyberAccount, SystemLog
-from cyberpanel_service import CyberPanelService
+from src.models import HostingPlan, Order, Ticket, User, CyberAccount, SystemLog
+from src.services.cyberpanel_service import CyberPanelService
 
 cp_service = CyberPanelService()
 
