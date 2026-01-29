@@ -431,19 +431,24 @@
             if (mutation.addedNodes.length) {
               // 1. Update navigation links and "View Pricing" buttons
               document.querySelectorAll('a, button').forEach(el => {
-                if (el.tagName === 'A' && el.getAttribute('href') === '/pricing-shared') {
-                  el.href = '/Shared';
+                if (el.tagName === 'A' && (el.getAttribute('href') === '/pricing-shared' || el.getAttribute('href') === '/Shared')) {
+                  el.href = '/pricing';
                   el.textContent = 'Shared Hosting';
                 }
                 if (el.textContent.trim() === 'View Pricing') {
                    el.onclick = (e) => {
                      e.preventDefault();
-                     window.history.pushState({}, '', '/Shared');
+                     window.history.pushState({}, '', '/pricing');
                      // Trigger a popstate or custom event to notify React router
                      window.dispatchEvent(new PopStateEvent('popstate'));
                    };
                 }
               });
+
+              // 2. Handle /Shared to /pricing redirect
+              if (window.location.pathname === '/Shared') {
+                window.history.replaceState({}, '', '/pricing');
+              }
 
               // 2. Fix input types (number -> text)
               document.querySelectorAll('input[type="number"]').forEach(input => {

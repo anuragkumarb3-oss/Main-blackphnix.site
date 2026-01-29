@@ -291,8 +291,8 @@ def broadcast():
     data = request.get_json()
     return jsonify({'message': 'Broadcast sent', 'data': data})
 
-@app.route('/Shared', methods=['GET'])
-def shared_page():
+@app.route('/pricing', methods=['GET'])
+def pricing_page():
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/verify-email', methods=['GET', 'POST'])
