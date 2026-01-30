@@ -493,29 +493,28 @@
               }
               
               // 3. Fix null/undefined data displays and enhance order status
-              document.querySelectorAll('[data-price], [data-plan], .order-status, .order-item').forEach(el => {
-                // Add VPS/SHARED suffix to plan names
-                if (el.dataset.planProcessed !== 'true') {
-                  const planText = el.textContent.toLowerCase();
-                  // Detect VPS vs Shared based on content or context
-                  const isVPS = planText.includes('vps') || el.closest('.vps-section, #vps-plans');
-                  const suffix = isVPS ? ' (VPS)' : ' (SHARED)';
+              document.querySelectorAll('[data-price], [data-plan], .order-status, .order-item, .plan-card').forEach(el => {
+                // Label every plan as SHARED or VPS
+                if (el.dataset.planLabeled !== 'true') {
+                  const text = el.innerText.toLowerCase();
+                  const isVPS = text.includes('vps') || el.closest('.vps-section') || el.classList.contains('vps');
+                  const isShared = text.includes('shared') || el.closest('.shared-section') || el.classList.contains('shared');
                   
-                  if (!el.textContent.includes('(SHARED)') && !el.textContent.includes('(VPS)')) {
-                    // Apply to ALL titles/names by looking at text content and hierarchy
-                    const isTitle = el.tagName.startsWith('H') || el.classList.contains('plan-name') || el.classList.contains('title') || el.getAttribute('data-plan');
-                    if (isTitle) {
-                      const label = document.createElement('span');
-                      label.innerText = suffix;
-                      label.style.fontSize = '0.6em';
-                      label.style.marginLeft = '8px';
-                      label.style.verticalAlign = 'middle';
-                      label.style.opacity = '0.7';
-                      label.style.color = isVPS ? '#a855f7' : '#9333ea';
-                      el.appendChild(label);
-                    }
+                  let labelText = '';
+                  if (isVPS) labelText = ' (VPS)';
+                  else if (isShared || el.querySelector('.price') || el.dataset.price) labelText = ' (SHARED)';
+
+                  if (labelText && !el.innerText.includes('(SHARED)') && !el.innerText.includes('(VPS)')) {
+                    const title = el.querySelector('h1, h2, h3, .plan-name, .title') || el;
+                    const span = document.createElement('span');
+                    span.innerText = labelText;
+                    span.style.fontSize = '0.7em';
+                    span.style.opacity = '0.6';
+                    span.style.marginLeft = '5px';
+                    span.style.color = isVPS ? '#a855f7' : '#9333ea';
+                    title.appendChild(span);
                   }
-                  el.dataset.planProcessed = 'true';
+                  el.dataset.planLabeled = 'true';
                 }
 
                 if (!el.textContent || el.textContent === 'undefined' || el.textContent === 'null') {
@@ -909,6 +908,52 @@
     <footer style="position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,15,0.95); color: #aaa; text-align: center; padding: 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-top: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); z-index: 9999;">
       &copy; 2026 BLACKPHNIX HUB &bull; High Performance Hosting
     </footer>
+    <script>
+      // Global Redirection and UI Harmonization
+      (function() {
+        const VALID_ROUTES = ['/', '/pricing', '/pricing-shared', '/VPS', '/Shared', '/analytics', '/support', '/dashboard', '/free-domain', '/login', '/register'];
+        
+        function checkRoute() {
+          const path = window.location.pathname;
+          if (path !== '/' && !VALID_ROUTES.includes(path) && !path.startsWith('/assets/')) {
+            console.log("[ROUTING] Invalid route detected:", path);
+            window.history.replaceState({}, '', '/');
+            // Trigger React Router to update if possible
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }
+
+        function mergeMenuItems() {
+          // Merge VPS and Shared Hosting into "Hosting Plans"
+          document.querySelectorAll('nav a, .sidebar a, [role="navigation"] a').forEach(el => {
+            const text = el.textContent.toLowerCase();
+            if (text.includes('vps') || text.includes('shared')) {
+              if (!el.dataset.merged) {
+                if (text.includes('shared')) {
+                  el.textContent = 'Hosting Plans';
+                  el.href = '/pricing';
+                  el.dataset.merged = 'true';
+                } else if (text.includes('vps')) {
+                  el.remove(); // Remove the VPS one, as we merged it into Shared -> Hosting Plans
+                }
+              }
+            }
+          });
+        }
+
+        // Initialize
+        checkRoute();
+        const observer = new MutationObserver(() => {
+          mergeMenuItems();
+          checkRoute();
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+          mergeMenuItems();
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
+      })();
+    </script>
     <script src="/bot_script.js"></script>
   </body>
 </html>

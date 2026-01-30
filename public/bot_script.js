@@ -16,31 +16,33 @@
 
                       if (!isAdmin) return;
                       
-                      // Sidebar Menu Item Injection
-                      const sidebar = document.querySelector('nav, .sidebar, [role="navigation"], aside');
+                      const sidebar = document.querySelector('nav, .sidebar, [role="navigation"], aside, .menu-container');
                       console.log("[BOT] Sidebar found:", !!sidebar);
                       if (sidebar && !document.getElementById('admin-bot-menu-item')) {
+                        // Ensure it's placed after Main Menu items
                         const menuItem = document.createElement('div');
                         menuItem.id = 'admin-bot-menu-item';
-                        menuItem.style.cssText = 'padding: 12px 20px; cursor: pointer; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 10px; transition: all 0.2s; border-radius: 8px; margin: 4px 8px; font-weight: 500;';
+                        menuItem.className = 'menu-item'; // Mimic React app class if exists
+                        menuItem.style.cssText = 'padding: 12px 20px; cursor: pointer; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 10px; transition: all 0.2s; border-radius: 8px; margin: 4px 8px; font-weight: 500; border: 1px solid rgba(147, 51, 234, 0.1);';
                         menuItem.innerHTML = `<span style="font-size: 1.2em;">🤖</span> <span>Admin Bot</span>`;
-                        menuItem.onmouseover = () => {
-                          menuItem.style.backgroundColor = 'rgba(147, 51, 234, 0.15)';
-                          menuItem.style.color = '#fff';
-                        };
-                        menuItem.onmouseout = () => {
-                          menuItem.style.backgroundColor = 'transparent';
-                          menuItem.style.color = 'rgba(255,255,255,0.7)';
-                        };
-                        menuItem.onclick = () => {
+                        
+                        // Interaction logic
+                        menuItem.onclick = (e) => {
+                          e.stopPropagation();
                           const panel = document.getElementById('bot-preview-container');
                           if (panel) {
                              panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
                              console.log("[BOT] Toggled panel:", panel.style.display);
                           }
                         };
-                        sidebar.appendChild(menuItem);
-                        console.log("[BOT] Menu item injected");
+                        
+                        // Try to find a good injection point (after dashboard/logout)
+                        const dashboardBtn = sidebar.querySelector('a[href="/dashboard"], button:contains("Dashboard")');
+                        if (dashboardBtn) {
+                           dashboardBtn.parentNode.insertBefore(menuItem, dashboardBtn.nextSibling);
+                        } else {
+                           sidebar.appendChild(menuItem);
+                        }
                       }
 
                       const container = document.createElement('div');
