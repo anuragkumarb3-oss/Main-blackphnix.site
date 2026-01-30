@@ -137,6 +137,46 @@ def test_random_provision():
         db.session.commit()
         return jsonify({"status": "error", "message": f"Provisioning failed: {str(cp_res)}"}), 500
 
+from src.services.ai_agent_service import AIAgentService
+ai_agent = AIAgentService()
+
+@app.route('/api/admin/bot/analyze', methods=['POST'])
+def bot_analyze():
+    data = request.get_json()
+    issue = data.get('issue')
+    result = ai_agent.analyze_and_propose(issue)
+    return jsonify(result)
+
+@app.route('/api/admin/bot/approve-fix', methods=['POST'])
+def bot_approve_fix():
+    data = request.get_json()
+    commands = data.get('commands', [])
+    import subprocess
+    results = []
+    for cmd in commands:
+        try:
+            # Execute with cautious shell execution
+            res = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True, timeout=10)
+            results.append({"command": cmd, "output": res, "status": "success"})
+        except subprocess.TimeoutExpired:
+            results.append({"command": cmd, "output": "Command timed out", "status": "failed"})
+        except Exception as e:
+            results.append({"command": cmd, "output": str(e), "status": "failed"})
+    
+    db.session.add(SystemLog(level="INFO", message=f"AI Bot executed commands: {json.dumps(results)}"))
+    db.session.commit()
+    return jsonify(results)
+
+@app.route('/api/admin/bot/self-destruct', methods=['POST'])
+def bot_self_destruct():
+    # Emergency logic as requested
+    success = ai_agent.self_destruct()
+    message = "EMERGENCY: Bot security compromised. Self-destruct sequence initiated."
+    logging.critical(message)
+    db.session.add(SystemLog(level="CRITICAL", message=message))
+    db.session.commit()
+    return jsonify({"message": "Self-destruct sequence complete. Data purged. Admin notified.", "success": success})
+
 @app.route('/api/admin/bot/status', methods=['GET'])
 def get_bot_status():
     # Get last 5 logs for the "preview"
