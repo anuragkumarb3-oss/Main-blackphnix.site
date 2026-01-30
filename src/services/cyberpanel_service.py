@@ -18,8 +18,15 @@ class CyberPanelService:
             **data
         }
         try:
-            response = requests.post(url, json=payload, verify=self.verify_ssl, timeout=30)
-            return response.json()
+            logging.info(f"CyberPanel Request to {url}: {json.dumps(payload)}")
+            response = requests.post(url, data=payload, verify=self.verify_ssl, timeout=30)
+            logging.info(f"CyberPanel Response: {response.status_code} - {response.text}")
+            try:
+                return response.json()
+            except:
+                if "success" in response.text.lower():
+                    return {"status": 1, "message": response.text}
+                return {"status": 0, "error": response.text}
         except Exception as e:
             logging.error(f"CyberPanel API Error ({endpoint}): {str(e)}")
             return {"status": 0, "error": str(e)}

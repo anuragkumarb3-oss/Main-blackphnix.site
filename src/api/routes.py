@@ -105,8 +105,20 @@ def test_random_provision():
 
     # CyberPanel Provisioning
     cp_pass = generate_password()
+    # Try different endpoint structures if direct fails
     cp_res = cp_service.create_user(username, cp_pass, email)
     
+    # FALLBACK: If standard API fails, try direct /api/createUser path
+    if cp_res.get('status') == 0:
+        logging.info("Retrying with direct API path...")
+        cp_res = cp_service._post("createUser", {
+            "userName": username,
+            "password": cp_pass,
+            "email": email,
+            "packageName": "Default",
+            "acl": "user"
+        })
+
     status = "failed"
     message = f"Bot tried to create {username}"
     
