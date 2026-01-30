@@ -84,14 +84,58 @@ def list_accounts():
         "suspension_date": a.suspension_date.isoformat() if a.suspension_date else None
     } for a in accounts])
 
-@app.route('/api/admin/logs', methods=['GET'])
-def get_logs():
-    logs = SystemLog.query.order_by(SystemLog.created_at.desc()).limit(100).all()
-    return jsonify([{
-        "level": l.level,
-        "message": l.message,
-        "time": l.created_at.isoformat()
-    } for l in logs])
+@app.route('/api/admin/bot/test-random', methods=['POST'])
+def test_random_provision():
+    import random
+    import string
+    
+    # Generate random username and email
+    rand_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    username = f"testuser_{rand_id}"
+    email = f"{username}@example.com"
+    subdomain = f"{username}.blackphnix.site"
+    
+    # Check if a test user exists or create one
+    user = User.query.filter_by(username="admin").first()
+    if not user:
+        user = User(username="admin", email="admin@blackphnix.site")
+        user.password_hash = "admin123"
+        db.session.add(user)
+        db.session.commit()
+
+    # CyberPanel Provisioning
+    cp_pass = generate_password()
+    cp_res = cp_service.create_user(username, cp_pass, email)
+    
+    status = "failed"
+    message = f"Bot tried to create {username}"
+    
+    if cp_res.get('status') == 1 or 'success' in str(cp_res).lower():
+        cp_service.create_website(subdomain, username)
+        status = "success"
+        message = f"Bot successfully created {username} on {subdomain}"
+        
+        # Log it so it shows in the preview
+        db.session.add(SystemLog(level="INFO", message=message))
+        db.session.commit()
+        return jsonify({"status": "success", "message": message, "username": username, "password": cp_pass})
+    else:
+        db.session.add(SystemLog(level="ERROR", message=f"Bot failed to create {username}: {str(cp_res)}"))
+        db.session.commit()
+        return jsonify({"status": "error", "message": f"Provisioning failed: {str(cp_res)}"}), 500
+
+@app.route('/api/admin/bot/status', methods=['GET'])
+def get_bot_status():
+    # Get last 5 logs for the "preview"
+    logs = SystemLog.query.order_by(SystemLog.created_at.desc()).limit(5).all()
+    return jsonify({
+        "status": "Online",
+        "last_actions": [{
+            "message": l.message,
+            "time": l.created_at.isoformat(),
+            "level": l.level
+        } for l in logs]
+    })
 
 @app.route('/')
 def serve_index():
