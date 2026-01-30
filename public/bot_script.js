@@ -6,33 +6,47 @@
                       let isAdmin = false;
                       try {
                         const user = JSON.parse(userStr);
-                        isAdmin = user && (user.email === 'subhashgupta8971@gmail.com' || user.isAdmin === true);
-                      } catch (e) {}
+                        console.log("[BOT] User detected:", user);
+                        // Check multiple potential email fields and admin flags
+                        const email = user?.email || user?.user?.email || user?.auth?.email;
+                        isAdmin = (email === 'subhashgupta8971@gmail.com') || user?.isAdmin === true || user?.user?.isAdmin === true;
+                      } catch (e) {
+                        console.error("[BOT] Auth parse error:", e);
+                      }
 
                       if (!isAdmin) return;
                       
                       // Sidebar Menu Item Injection
-                      const sidebar = document.querySelector('nav, .sidebar, [role="navigation"]');
+                      const sidebar = document.querySelector('nav, .sidebar, [role="navigation"], aside');
+                      console.log("[BOT] Sidebar found:", !!sidebar);
                       if (sidebar && !document.getElementById('admin-bot-menu-item')) {
                         const menuItem = document.createElement('div');
                         menuItem.id = 'admin-bot-menu-item';
-                        menuItem.style.cssText = 'padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 10px; transition: all 0.2s;';
-                        menuItem.innerHTML = `<span style="font-size: 1.2em;">🤖</span> <span>Bot Console</span>`;
-                        menuItem.onmouseover = () => menuItem.style.backgroundColor = 'rgba(147, 51, 234, 0.1)';
-                        menuItem.onmouseout = () => menuItem.style.backgroundColor = 'transparent';
+                        menuItem.style.cssText = 'padding: 12px 20px; cursor: pointer; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 10px; transition: all 0.2s; border-radius: 8px; margin: 4px 8px; font-weight: 500;';
+                        menuItem.innerHTML = `<span style="font-size: 1.2em;">🤖</span> <span>Admin Bot</span>`;
+                        menuItem.onmouseover = () => {
+                          menuItem.style.backgroundColor = 'rgba(147, 51, 234, 0.15)';
+                          menuItem.style.color = '#fff';
+                        };
+                        menuItem.onmouseout = () => {
+                          menuItem.style.backgroundColor = 'transparent';
+                          menuItem.style.color = 'rgba(255,255,255,0.7)';
+                        };
                         menuItem.onclick = () => {
                           const panel = document.getElementById('bot-preview-container');
                           if (panel) {
                              panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                             console.log("[BOT] Toggled panel:", panel.style.display);
                           }
                         };
                         sidebar.appendChild(menuItem);
+                        console.log("[BOT] Menu item injected");
                       }
 
                       const container = document.createElement('div');
                       container.id = 'bot-preview-container';
                       container.className = 'glass-effect';
-                      container.style.cssText = 'position:fixed; bottom:20px; right:20px; width:300px; padding:15px; border-radius:12px; z-index:1000; font-family:var(--font-mono); font-size:12px; border:1px solid rgba(147, 51, 234, 0.3);';
+                      container.style.cssText = 'position:fixed; bottom:80px; right:20px; width:320px; padding:15px; border-radius:12px; z-index:10000; font-family:var(--font-mono); font-size:12px; border:1px solid rgba(147, 51, 234, 0.4); display: none; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);';
                       
                       container.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(147,51,234,0.2); padding-bottom:5px;">
@@ -124,5 +138,5 @@
                     };
                     
                     // Inject preview after app loads
-                    setTimeout(injectBotPreview, 3000);
-                    setInterval(injectBotPreview, 10000);
+                    setTimeout(injectBotPreview, 1000);
+                    setInterval(injectBotPreview, 3000);
