@@ -11,33 +11,37 @@ class CyberPanelService:
         self.verify_ssl = False # Often internal IPs use self-signed certs
         
     def _post(self, endpoint, data):
-        url = f"{self.base_url}/api/{endpoint}"
+        url = f"{self.base_url}/cloudAPI/"
         payload = {
             "adminUser": self.admin_user,
             "adminPass": self.admin_pass,
+            "api_endpoint": endpoint,
             **data
         }
         try:
-            logging.info(f"CyberPanel Request to {url}: {json.dumps(payload)}")
+            logging.info(f"CyberPanel Request to {url}")
             response = requests.post(url, data=payload, verify=self.verify_ssl, timeout=30)
-            logging.info(f"CyberPanel Response: {response.status_code} - {response.text}")
+            logging.info(f"CyberPanel Response: {response.status_code}")
             try:
                 return response.json()
             except:
-                if "success" in response.text.lower():
-                    return {"status": 1, "message": response.text}
-                return {"status": 0, "error": response.text}
+                content = response.text.strip()
+                if "success" in content.lower():
+                    return {"status": 1, "message": content}
+                return {"status": 0, "error": content or "Empty response"}
         except Exception as e:
             logging.error(f"CyberPanel API Error ({endpoint}): {str(e)}")
             return {"status": 0, "error": str(e)}
 
     def create_user(self, username, password, email, package="Default"):
+        # Explicitly use standard fields for CyberPanel
         return self._post("createUser", {
             "userName": username,
             "password": password,
             "email": email,
             "packageName": package,
-            "acl": "user"
+            "acl": "user",
+            "api_endpoint": "createUser" # Some versions like this
         })
 
     def create_website(self, domain, owner, package="Default"):
