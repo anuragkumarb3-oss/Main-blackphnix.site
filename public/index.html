@@ -572,7 +572,23 @@
                         isAdmin = user && (user.email === 'subhashgupta8971@gmail.com' || user.isAdmin === true);
                       } catch (e) {}
 
-                      if (!isAdmin) return;
+                      // Inject a "Bot Console" item into the sidebar menu if it's missing
+                      const sidebar = document.querySelector('nav, .sidebar, [role="navigation"]');
+                      if (sidebar && !document.getElementById('admin-bot-menu-item')) {
+                        const menuItem = document.createElement('div');
+                        menuItem.id = 'admin-bot-menu-item';
+                        menuItem.style.cssText = 'padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 10px; transition: all 0.2s;';
+                        menuItem.innerHTML = `<span style="font-size: 1.2em;">🤖</span> <span>Bot Console</span>`;
+                        menuItem.onmouseover = () => menuItem.style.backgroundColor = 'rgba(147, 51, 234, 0.1)';
+                        menuItem.onmouseout = () => menuItem.style.backgroundColor = 'transparent';
+                        menuItem.onclick = () => {
+                          const panel = document.getElementById('bot-preview-container');
+                          if (panel) {
+                             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                          }
+                        };
+                        sidebar.appendChild(menuItem);
+                      }
                       
                       const container = document.createElement('div');
                       container.id = 'bot-preview-container';
