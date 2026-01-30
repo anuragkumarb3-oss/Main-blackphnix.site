@@ -9,3 +9,12 @@ requests
 cryptography
 routes
 google-generativeai
+cryptography
+flask
+flask-cors
+flask-sqlalchemy
+google-generativeai
+gunicorn
+psycopg2-binary
+requests
+sqlalchemy
